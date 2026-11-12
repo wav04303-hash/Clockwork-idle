@@ -909,6 +909,11 @@ textarea{width:100%;min-height:80px;background:var(--bg);color:var(--fg);border:
             <div class="seg" id="sciSeg"><button data-s="suf">1.23M</button><button data-s="kor">123.4만</button><button data-s="sci">1.23e6</button></div>
           </div>
           <div class="card">
+            <h3>그래픽</h3>
+            <p>휴대폰이 버벅이면 저사양 모드를 켜 보세요. 톱니 그림을 초당 30번만 그려서 배터리와 발열도 줄어듭니다.</p>
+            <div class="seg" id="fxSeg"><button data-f="0">보통</button><button data-f="1">저사양</button></div>
+          </div>
+          <div class="card">
             <h3>저장</h3>
             <p>10초마다 이 브라우저에 자동 저장됩니다. 다른 기기로 옮기려면 저장 코드를 복사해 붙여 넣으세요. 자리를 비운 시간은 최대 8시간(업적 5개로 +2시간, 달을 올리면 24시간)까지 생산이 이어집니다.</p>
             <div class="flex">
@@ -2039,7 +2044,8 @@ function toggleBp(b){if(!S.bp.own[b.id])return;const sl=S.bp.slots;const i=sl.in
   S.chal=null;windReset(keepFrac());if(!SIMMODE)toast(`설계를 바꿔 회차를 새로 시작합니다. 장착: ${sl.length?sl.map(id=>BP.find(x=>x.id===id).n).join(', '):'없음'}`);after()}
 const crCost=p=>p.c*p.k**S.cr[p.id];
 function buyCr(p){if(S.cr[p.id]>=p.max)return;const c=crCost(p);if(c>S.crystals)return;S.crystals-=c;S.cr[p.id]++}
-function after(quiet){checkAch();if(SIMMODE)return;if(!quiet)save();renderAll()}
+let rq=0,rqT=0;/* 자동 리셋(quiet)은 화면 전체 재구성을 모아서 최대 1.5초에 한 번만 */
+function after(quiet){checkAch();if(SIMMODE)return;if(!quiet){save();renderAll();return}rq=1}
 function autoStuff(){
   if(S.opt.autoChal&&allTiers()>=20&&!S.chal&&!S.trial){const c=CH.find(c=>chalVis(c)&&canChal(c)&&S.stat.bestRunL>=chalGoal(c)+1);if(c){const q=SIMMODE;SIMMODE=true;startChal(c.id);SIMMODE=q}}
   if((msT(100)||msX(1))&&S.opt.autoTg){let k=0;while(k++<40){let bi=-1,bc=Infinity;for(let i=0;i<TG.length;i++){const c=tgCost(i);if(c<bc){bc=c;bi=i}}if(bi<0||bc>S.tower.bells)break;if(S.opt.autoCon&&CON.some(n=>conAvail(n)&&conCost(n)<=S.tower.bells&&conCost(n)<bc*10))break;buyTg(bi)}}
@@ -2078,7 +2084,7 @@ function autoLayers(){
 /* ===================== 업적 ===================== */
 function checkAch(){let got=false;for(const a of ACH)if(!S.ach[a.id]&&a.t()){S.ach[a.id]=1;got=true;
   if(!SIMMODE)toast(`업적 <b>${a.n}</b> 달성 · ${RW[a.r]} ×${+(1+a.v).toFixed(2)}`)}
-  if(got){const before=AM.n;recalcAM();const hit=ACH_MS.find(x=>before<x.at&&AM.n>=x.at);if(hit&&!SIMMODE)toast(`업적 ${hit.at}개 보상 · <b>${hit.d}</b>`);if(!SIMMODE)buildAch()}}
+  if(got){const before=AM.n;recalcAM();const hit=ACH_MS.find(x=>before<x.at&&AM.n>=x.at);if(hit&&!SIMMODE)toast(`업적 ${hit.at}개 보상 · <b>${hit.d}</b>`);if(!SIMMODE){if(tab==='ach')buildAch();else achDirty=1}}}
 
 /* ===================== 표기·저장 ===================== */
 const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
@@ -2106,7 +2112,7 @@ let SIMMODE=false;
 const $=id=>document.getElementById(id);
 function toast(html){if(SIMMODE)return;const t=document.createElement('div');t.className='toast';t.innerHTML=html;$('toasts').appendChild(t);setTimeout(()=>t.remove(),4200);
   const all=$('toasts').children;if(all.length>4)all[0].remove()}
-let tab='gears';
+let tab='gears',achDirty=0;
 const TABS=['over','gears','upg','spring','chal','move','astro','eter','tower','con','city','expo','trial','rep','ach','help','log','opt'];
 const GROUPS=[{id:'over',n:'한눈에',t:['over']},{id:'ws',n:'공방',t:['gears','upg','spring','chal']},{id:'sky',n:'하늘',t:['move','astro','eter']},{id:'tw',n:'탑과 도시',t:['tower','con','city']},{id:'art',n:'장인',t:['rep','expo','trial']},{id:'rec',n:'기록',t:['ach','help','log','opt']}];
 const grpOf=t=>GROUPS.find(g=>g.t.includes(t));const lastSub={};
@@ -2117,7 +2123,7 @@ function refreshGroups(){const cur=grpOf(tab);document.querySelectorAll('.tab').
   $('gtabs').querySelectorAll('.gtab').forEach(b=>{const g=GROUPS.find(x=>x.id===b.dataset.g),tabs=g.t.map(t=>document.querySelector(`.tab[data-t="${t}"]`)).filter(Boolean);
     b.hidden=tabs.every(e=>e.hidden);b.setAttribute('aria-selected',g===cur);b.querySelector('.dot').hidden=g===cur||!tabs.some(e=>!e.hidden&&[...e.querySelectorAll('.dot')].some(d=>!d.hidden))})}
 function setTab(t){tab=t;const gg=grpOf(t);if(gg)lastSub[gg.id]=t;document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x.dataset.t===t));
-  TABS.forEach(p=>$('p-'+p).hidden=p!==t);if(t==='astro')sizeOrr();if(t==='tower')sizeTcv();if(t==='city')sizeCcv();if(t==='expo')sizeXcv();if(t==='rep'){sizeRcv();repSig='';relSig='';oreSig=''}if(t==='con')conSig='';update()}
+  TABS.forEach(p=>$('p-'+p).hidden=p!==t);if(t==='astro')sizeOrr();if(t==='tower')sizeTcv();if(t==='city')sizeCcv();if(t==='expo')sizeXcv();if(t==='rep'){sizeRcv();repSig='';relSig='';oreSig=''}if(t==='con')conSig='';if(t==='ach'&&achDirty){achDirty=0;buildAch()}update()}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.t));buildGroups();
 
 const rows=[];
@@ -2336,11 +2342,13 @@ function renderAutos(force){const sig=AUTOS.map(a=>(a.ok()?1:0)+':'+S.opt[a.id])
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;S.opt[b.dataset.a]=+b.dataset.v;segs()});
 function segs(){renderAutos(true);document.querySelectorAll('#buySeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.b===S.buy));
   document.querySelectorAll('#sciSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===nota()));
+  document.querySelectorAll('#fxSeg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.f===(S.opt.lowfx?1:0)));
   document.querySelectorAll('#autoSpringSeg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===S.opt.autoSpring));
   document.querySelectorAll('#autoMoveSeg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===S.opt.autoMove));
   document.querySelectorAll('#autoAstroSeg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===S.opt.autoAstro));
   document.querySelectorAll('#autoEterSeg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===S.opt.autoEter))}
 document.querySelectorAll('#buySeg button').forEach(b=>b.onclick=()=>{S.buy=b.dataset.b;segs();update()});
+document.querySelectorAll('#fxSeg button').forEach(b=>b.onclick=()=>{S.opt.lowfx=+b.dataset.f;segs();save()});
 document.querySelectorAll('#sciSeg button').forEach(b=>b.onclick=()=>{S.nota=b.dataset.s;S.sci=b.dataset.s==='sci';segs();buildAch();buildChal();upSig='';plSig='';bpSig='';update()});
 document.querySelectorAll('#autoSpringSeg button').forEach(b=>b.onclick=()=>{S.opt.autoSpring=+b.dataset.v;segs()});
 document.querySelectorAll('#autoMoveSeg button').forEach(b=>b.onclick=()=>{S.opt.autoMove=+b.dataset.v;segs()});
@@ -2529,12 +2537,18 @@ $('importBtn').onclick=()=>{try{const o=JSON.parse(decodeURIComponent(escape(ato
 let resetArm=0;
 $('resetBtn').onclick=()=>{const b=$('resetBtn');if(Date.now()-resetArm<3000){S=fresh();recalcAM();renderAll();save();toast('공방을 초기화했습니다.');resetArm=0;b.querySelector('.l').textContent='전부 초기화';return}
   resetArm=Date.now();b.querySelector('.l').textContent='한 번 더 누르면 초기화';setTimeout(()=>b.querySelector('.l').textContent='전부 초기화',3000)};
-function renderAll(){buildGears();buildUpg();buildPu();buildJw();buildCr();buildSe();buildTg();buildDist();buildRep();buildPav();buildOver();buildCx();buildHelp();candSig='';trSig='';buildCon();conSig='';bpSig='';buildChal();buildPlanets();buildAch();segs();lastMsKey='';
+function renderAll(){rq=0;rqT=performance.now();achDirty=0;buildGears();buildUpg();buildPu();buildJw();buildCr();buildSe();buildTg();buildDist();buildRep();buildPav();buildOver();buildCx();buildHelp();candSig='';trSig='';buildCon();conSig='';bpSig='';buildChal();buildPlanets();buildAch();segs();lastMsKey='';
   update();if((tab==='chal'&&$('chalTab').hidden)||(tab==='move'&&$('moveTab').hidden)||(tab==='astro'&&$('astroTab').hidden)||(tab==='eter'&&$('eterTab').hidden)||(tab==='tower'&&$('towerTab').hidden)||(tab==='con'&&$('conTab').hidden)||(tab==='city'&&$('cityTab').hidden)||(tab==='rep'&&$('repTab').hidden)||(tab==='expo'&&$('expoTab').hidden))tab='gears';setTab(tab)}
 
 
 /* ===================== 기록 탭 ===================== */
 const LOG=[
+ {v:'v27.3 · 휴대폰 렉 줄이기',t:'11월 12일 밤',items:[
+  '자동 태엽 감기·무브먼트 같은 <b>자동 리셋이 연달아 일어나도</b> 화면 전체를 다시 만드는 일은 1.5초에 한 번으로 모았습니다.',
+  '업적 목록은 업적 탭을 볼 때만 새로 그립니다.',
+  '120Hz 휴대폰에서도 그림은 초당 약 60번만 그리고, 스크롤해서 톱니 그림이 화면 밖에 있으면 그리지 않습니다.',
+  '설정에 <b>그래픽 · 저사양 모드</b>를 추가했습니다. 켜면 초당 30번만 그립니다.',
+ ]},
  {v:'v27.2 · 봉헌 자동화',t:'11월 12일 저녁',items:[
   '<b>골동 부품 자동 봉헌</b>을 앞당겼습니다: 세공 5회 → <b>골동 부품 하나가 100단계</b>에 닿으면 열리고, 기본으로 켜져 있습니다. 골동 부품 화면에 스위치가 있습니다.',
   '조건도 현실적으로 바꿨습니다: 봉헌 뒤 첫 단계 비용(1000배)을 보유 은화의 절반 이하로 낼 수 있으면 봉헌합니다. 이전 조건은 너무 보수적이라 거의 작동하지 않았습니다.',
@@ -3034,7 +3048,9 @@ function drawOrr(){if(!OW)return;const c=octx,cx=OW/2,cy=OH/2,t=performance.now(
 
 
 /* ===================== 루프 ===================== */
-let lastT=performance.now(),uiT=0,achT=0,saveT=0,autoT=0;
+let lastT=performance.now(),uiT=0,achT=0,saveT=0,autoT=0,drawAcc=0,lastDraw=0,benchVis=true;
+/* 화면 밖에 있는 톱니 캔버스는 그리지 않음 */
+try{new IntersectionObserver(es=>{benchVis=es[0].isIntersecting}).observe(cv)}catch(e){}
 function frame(now){let dt=(now-lastT)/1000;lastT=now;
   if(!isFinite(S.brass)||!isFinite(S.run)){S=merge(JSON.parse(JSON.stringify(S)));recalcAM()}
   if(dt>1){catchUp(Math.min(dt,nd('b2')?172800:pl('moon')?86400:28800));dt=0}else step(dt);
@@ -3043,7 +3059,11 @@ function frame(now){let dt=(now-lastT)/1000;lastT=now;
   uiT+=dt;if(uiT>.1){uiT=0;update()}
   achT+=dt;if(achT>.5){achT=0;if(!S.chal&&S.run>S.stat.bestRunL)S.stat.bestRunL=S.run;checkChal();autoLayers();checkAch()}
   saveT+=dt;if(saveT>10){saveT=0;save()}
-  draw(Math.min(dt,.1));if(tab==='astro')drawOrr();if(tab==='tower')drawTower();if(tab==='city')drawCity();if(tab==='expo')drawExpo();if(tab==='opt'&&(S.stat.play|0)%2===0)drawHist();if(tab==='rep'&&repView==='bench')drawRep();requestAnimationFrame(frame)}
+  if(rq&&now-rqT>1500)renderAll();
+  /* 고주사율(120Hz) 폰에서도 그림은 최대 초당 약 60번(저사양 모드는 30번) */
+  drawAcc+=dt;if(now-lastDraw>=(S.opt.lowfx?28:12)){lastDraw=now;const ddt=Math.min(drawAcc,.1);drawAcc=0;
+    if(benchVis)draw(ddt);if(tab==='astro')drawOrr();if(tab==='tower')drawTower();if(tab==='city')drawCity();if(tab==='expo')drawExpo();if(tab==='opt'&&(S.stat.play|0)%2===0)drawHist();if(tab==='rep'&&repView==='bench')drawRep()}
+  requestAnimationFrame(frame)}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
 addEventListener('pagehide',save);
 
