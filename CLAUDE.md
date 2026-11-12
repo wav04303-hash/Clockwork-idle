@@ -5,7 +5,7 @@
 ## 현재 상태
 - 최신 버전과 변경 내역: `CHANGELOG.md` (최신이 위)
 - 플레이 주소: https://wav04303-hash.github.io/Clockwork-idle/ (저장소 이름 대소문자 그대로)
-- 레이어 순서: 톱니 Ⅰ~Ⅻ(황동) → 태엽 감기 → 의뢰 → 무브먼트(루비) → 천문 시계(별·행성) → 영겁(시간 결정) → 시계탑(종)·성좌도 → 시계 도시(주민) → 수리 공방(은화·골동 부품·원석) → 만국 박람회(명성)·장인 계보 → 장인 시험
+- 레이어 순서: 톱니 Ⅰ~Ⅻ(황동) → 태엽 감기 → 의뢰 → 무브먼트(루비) → 천문 시계(별·행성) → 영겁(시간 결정) → 시계탑(종)·성좌도 → 시계 도시(주민) → 수리 공방(은화·골동 부품·원석) → 만국 박람회(명성)·장인 계보 → 장인 시험 → 박람회 테마(v28) → 시간 항로(v29, 박람회마다 거리 누적, 정박지 9곳×3바퀴 영구 장점)
 - 탭 묶음: 한눈에 / 공방 / 하늘 / 탑과 도시 / 장인 / 기록
 
 ## 설계 원칙 (사용자가 정한 것)
@@ -19,6 +19,7 @@
 ## 코드 구조
 - 이 저장소의 `index.html`은 배포용 **빌드본**(CSS·JS를 한 파일에 합친 것)이다. `sw.js`는 오프라인 캐시, `manifest.webmanifest`와 아이콘은 PWA용이다.
 - **작업용 분할 소스**는 아티팩트 https://claude.ai/artifact/3uYv5ksxaL6dT5zN63qW3q 에 있다 (`css/style.css`, `js/data.js · core.js · ui.js · log.js · draw.js · main.js`, `docs/DESIGN.md`). 콘텐츠 작업은 분할 소스에서 하고, 합친 빌드본을 여기에 올린다. 이 저장소의 빌드본만 고쳤다면 분할 소스에도 같은 변경을 반영해야 한다.
+- ⚠️ v28·v29는 빌드본(이 저장소)에서 직접 작업했다. 분할 소스(아티팩트)는 아직 v27.3이므로, 다음에 분할 소스로 작업하기 전에 v28·v29 변경을 옮겨야 한다. 바뀐 곳: 박람회 테마(`THEMES`, `thV`, `thM`, `makeThemes`, `pickTheme`, `refreshThemes`, `#themeCard`), 시간 항로(`PORTS`, `seaM`, `seaL`, `seaSail`, `seaPick`, `refreshSea`, `#p-sea`, `seaTab`), `merge()`의 expo·sea 병합, 각 획득량 공식의 `thM()`·`seaM()` 곱, `pavCost`, `holdExpo`, `AUTOS`, `ACH`, `TABS`·`GROUPS`.
 - 상태 객체는 `S`다. 기본값은 `fresh()`, 저장본 병합은 `merge()`. `S.opt`는 `Object.assign`으로 병합되므로 새 옵션 키를 추가해도 된다.
 - 메인 루프는 `frame()`이다. 계산은 `step()`, 화면 숫자는 `update()`(0.1초마다), 패널 재구성은 `renderAll()`이 맡는다.
 - 자동 리셋은 `after(true)`를 부르며, 패널 재구성은 최대 1.5초에 한 번으로 묶여 있다(v27.3). 같은 틱에서 `renderAll()`을 직접 부르지 말 것.
