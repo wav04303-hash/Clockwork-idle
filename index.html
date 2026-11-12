@@ -788,6 +788,14 @@ textarea{width:100%;min-height:80px;background:var(--bg);color:var(--fg);border:
             <div data-auto="autoExpo"></div>
           </div>
           <canvas class="orrery" id="xcv" aria-label="전시관과 관람객이 모인 만국 박람회장"></canvas>
+          <div class="card" id="themeCard" hidden>
+            <h3>박람회 테마</h3>
+            <p>박람회가 끝날 때마다 다음 박람회의 테마를 고릅니다. 고른 테마는 다음 박람회를 열 때까지 효과가 있고, 같은 테마를 여러 번 고를수록 효과가 커집니다(최대 25회분).</p>
+            <div id="themeNow"></div>
+            <div class="planets" id="themeList"></div>
+            <div class="ms" id="themeMs"></div>
+            <div data-auto="autoTheme"></div>
+          </div>
           <div class="card" id="masterCard">
             <h3>공방 주인</h3>
             <p>박람회를 열 때마다 지금의 공방 주인이 은퇴하고 제자 한 명이 공방을 물려받습니다. 제자마다 재능 두 가지를 타고나며, 등급(평범·숙련·명장)이 높을수록 강합니다. 주인의 재능은 그 주인이 있는 동안 적용되고, 은퇴하면 가문 전통으로 남아 영구히 조금씩 효과를 냅니다.</p>
@@ -1160,6 +1168,7 @@ const AUTOS=[
  {id:'autoTg',    n:'탑 톱니 자동 강화',      d:'종이 모이는 대로 가장 싼 탑 톱니부터 (성좌 자동 잇기가 켜져 있으면 별을 먼저)', ok:()=>msT(100)||msX(1), lock:'누적 종 100', v:OO},
  {id:'autoTower', n:'자동 시계탑',          d:'받을 종이 누적 종 이상이 되면 시계탑을 세움', ok:()=>msT(30)||msX(1), lock:'누적 종 30', v:OO},
  {id:'autoCon',   n:'성좌 자동 잇기',        d:'종이 모이는 대로 지금 이을 수 있는 가장 싼 별부터 이음 (은하수 강화 포함)', ok:()=>msT(300)||msX(2), lock:'누적 종 300', v:OO},
+ {id:'autoTheme', n:'테마 자동 선택',        d:'박람회가 끝나면 가장 덜 고른 테마를 이번 테마로', ok:()=>msTh(10), lock:'테마 10회', v:OO},
  {id:'autoPick',  n:'제자 자동 선택',        d:'박람회가 끝나면 재능 등급 합이 가장 높은 후보를 공방 주인으로', ok:()=>msX(3), lock:'박람회 3회', v:OO},
  {id:'autoExpo',  n:'자동 박람회',           d:'받을 명성이 누적 명성 이상이 되면 박람회를 엶', ok:()=>msX(5), lock:'박람회 5회', v:OO},
  {id:'autoFloor', n:'첨탑 자동 증축',       d:'황동이 모이는 대로 첨탑을 한 층씩 올림', ok:()=>msT(10), lock:'누적 종 10', v:OO},
@@ -1295,6 +1304,39 @@ const EXPO_MS=[
  {at:20,d:'명장 제자가 나올 확률 두 배'},
 ];
 const msX=at=>S.expo.n>=at;
+/* ---------- 박람회 테마 (v28) ---------- */
+const THEMES=[
+ {id:'bell',n:'종의 해',    d:c=>`종 획득량 ×${fmt(thV('bell',c))}`},
+ {id:'st',  n:'별의 해',    d:c=>`별 획득량 ×${fmt(thV('st',c))}`},
+ {id:'cr',  n:'시간의 해',  d:c=>`시간 결정 획득량 ×${fmt(thV('cr',c))}`},
+ {id:'arch',n:'도시의 해',  d:c=>`주민 수용 인원 ×${fmt(thV('arch',c))}`},
+ {id:'rep', n:'수리의 해',  d:c=>`은화 획득량 ×${fmt(thV('rep',c))}`},
+ {id:'gear',n:'기어의 해',  d:c=>`모든 생산량 ×${fmtL(thV('gear',c))}`},
+ {id:'fame',n:'흥행의 해',  d:c=>`명성 획득량 ×${thV('fame',c).toFixed(2)}`},
+ {id:'heir',n:'장인의 해',  d:c=>`다음 제자 후보가 명장일 확률 +${Math.round(100*thV('heir',c))}%p`},
+];
+const thC=id=>Math.min(((S.expo.thC||{})[id]||0)+(thTot()>=100?5:0),30);
+/* 같은 테마를 여러 번 고를수록 효과가 커짐 (최대 25회분) */
+function thV(id,c){c=c==null?thC(id):Math.min(c,30);const k=1+.04*c;
+  return id==='st'?10**(2*k):id==='gear'?200*k:id==='fame'?1.5+.02*c:id==='heir'?.2+.004*c:10**k}
+const thOn=()=>S.expo.th||null;
+const thM=id=>thOn()===id&&id!=='gear'&&id!=='heir'?thV(id):1;
+const thL=()=>thOn()==='gear'?thV('gear'):0;
+const thTot=()=>Object.values(S.expo.thC||{}).reduce((a,b)=>a+b,0);
+const thAll=()=>THEMES.every(t=>(S.expo.thC||{})[t.id]);
+const TH_MS=[
+ {at:1, d:'박람회 테마 해금 · 테마를 고를수록 그 테마 효과가 커짐(최대 25회분)'},
+ {at:10,d:'테마 자동 선택 해금 (가장 덜 고른 테마부터)'},
+ {at:30,d:'테마 후보 3개 → 4개'},
+ {at:60,d:'가문 전통 효과 ×1.5'},
+ {at:100,d:'모든 테마 효과 단계 +5'},
+];
+const msTh=at=>thTot()>=at;
+function makeThemes(){const E=S.expo,r=rng(E.n*7919+E.seed+17),N=msTh(30)?4:3,pool=THEMES.map(t=>t.id);
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}E.thOpt=pool.slice(0,N)}
+function pickTheme(id){const E=S.expo;if(!(E.thOpt||[]).includes(id))return;E.th=id;E.thOpt=[];E.thC=E.thC||{};E.thC[id]=(E.thC[id]||0)+1;
+  if(!SIMMODE){toast(`이번 박람회 테마: <b>${THEMES.find(t=>t.id===id).n}</b>`);thSig=''}}
+function autoTheme(){const E=S.expo;if(!(E.thOpt||[]).length)return;let bi=E.thOpt[0];for(const id of E.thOpt)if(thC(id)<thC(bi))bi=id;pickTheme(bi)}
 /* ---------- 장인 시험 ---------- */
 const trGoalV=t=>t===0?Math.max(600,Math.floor(.9*Math.max(0,S.stat.bestRunL))):t===1?Math.max(40,Math.ceil(S.stat.bestCrL||0)+3):t===2?Math.max(20,Math.ceil(Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal)))):Math.max(23,Math.ceil(Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal)))+3);
 const trGoalTxt=(t,v)=>t===0?`이번 회차 황동 1e${fmt(v)}`:t===1?`누적 시간 결정 1e${fmt(v)}`:`누적 종 1e${fmt(v)}`;
@@ -1370,14 +1412,14 @@ const pavLv=l=>l+(l>=25?5:0)+(l>=50?10:0)+(l>=100?25:0);
 const pav=id=>tr2('h5','g5')?0:Math.min(pavLv(S.expo.pav[id]||0),600);
 const pavCost=p=>capN(p.c*p.k**(S.expo.pav[p.id]||0)*.8**Math.min(tp('cur'),20));
 function buyPav(p){const c=pavCost(p);if(c>S.expo.fame)return false;S.expo.fame-=c;S.expo.pav[p.id]=(S.expo.pav[p.id]||0)+1;return true}
-const tradW=()=>msX(12)?.5:.25;
+const tradW=()=>(msX(12)?.5:.25)*(msTh(60)?1.5:1);
 function tp(id){const E=S.expo;let v=(E.trad[id]||0)*tradW();if(E.master)for(const t of E.master.t)if(t.id===id)v+=GRADE[t.g].v;return Math.min(v,200)}
 const expoOpen=()=>S.expo.n>0||(S.tower.best||0)>=1e18;
-const fameM=()=>(trD('g1')?3:1)*(trD('g5')?2:1)*(1+.2*cxF('fame'))*(trTier(0)?2:1)*(trTier(2)?3:1)*(nd('n2')?2:1)*1.5**Math.min(nl('q0'),200)*achM('f')*(dsp('station')===2?1.2:1)*(1+tp('fame'))*(1+.1*S.expo.n);
+const fameM=()=>(trD('g1')?3:1)*(trD('g5')?2:1)*(1+.2*cxF('fame'))*(trTier(0)?2:1)*(trTier(2)?3:1)*(nd('n2')?2:1)*1.5**Math.min(nl('q0'),200)*achM('f')*(dsp('station')===2?1.2:1)*(1+tp('fame'))*thM('fame')*(1+.1*S.expo.n);
 const fameGain=()=>{const b=S.tower.bellsTotal;return b<1e21?0:capN(Math.floor((Math.log10(b)-20)**2*fameM()))};
 const fameBellM=()=>(1+S.expo.fameT)**1.5;
 function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function makeCands(){const E=S.expo,r=rng(E.n*9973+E.seed),N=msX(3)?4:3,hb=+E.hb||0,top=Math.min(.6,(msX(20)?.2:.1)+hb/2),out=[];
+function makeCands(){const E=S.expo,r=rng(E.n*9973+E.seed),N=msX(3)?4:3,hb=+E.hb||0,top=Math.min(.8,(msX(20)?.2:.1)+hb/2+(thOn()==='heir'?thV('heir'):0)),out=[];
   for(let i=0;i<N;i++){const ids=[];while(ids.length<2){const t=TAL[Math.floor(r()*TAL.length)].id;if(!ids.includes(t))ids.push(t)}
     out.push({t:ids.map(id=>{const x=r();return{id,g:x<top?2:x<top+.3+hb/2?1:0}})})}
   E.cand=out}
@@ -1387,8 +1429,8 @@ function holdExpo(){const g=fameGain();if(g<1)return;const E=S.expo,T=S.tower;
   if(E.master){for(const t of E.master.t)E.trad[t.id]=(E.trad[t.id]||0)+GRADE[t.g].v;(E.hist=E.hist||[]).push({n:E.n+1,t:E.master.t});if(E.hist.length>60)E.hist.shift()}
   E.hb=(E.master?E.master.t.filter(t=>t.id==='heir').reduce((a,t)=>a+GRADE[t.g].v,0):0)*.1;E.fame=capN(E.fame+g);E.fameT=capN(E.fameT+g);E.n++;E.master=null;
   T.best=Math.max(T.best||0,T.bellsTotal);T.bells=0;T.bellsTotal=msX(8)?1e9:msX(2)?1e6:0;T.towers=0;
-  S.city.pop=Math.min(S.city.pop,1e4);towerReset();makeCands();
-  if(!SIMMODE)toast(`만국 박람회가 막을 내렸습니다. 명성 <b>${fmt(g)}</b>을 얻었습니다. 새 공방 주인을 고르세요.`);after()}
+  S.city.pop=Math.min(S.city.pop,1e4);towerReset();makeCands();E.th=null;makeThemes();
+  if(!SIMMODE)toast(`만국 박람회가 막을 내렸습니다. 명성 <b>${fmt(g)}</b>을 얻었습니다. 새 공방 주인과 다음 테마를 고르세요.`);after()}
 
 /* 시계 도시 */
 const DIST=[
@@ -1452,7 +1494,7 @@ const cev=()=>cevOn()?new Date().getDay():-1;
 const popL=()=>Math.log10(1+S.city.pop);
 const msP=at=>S.city.pop>=at;
 const cityLv=()=>DIST.reduce((a,p)=>a+cd(p.id),0);
-const popCap=()=>capN(1000*(1+cityLv())**2*(1+cd('plaza'))**1.5*(1+.1*rl('r9'))*(nd('z10')?3:1)*(nd('s6')?10:1)*2**Math.min(nl('m4'),900)*5**tp('arch')*3**pav('city')*(synOn('s9')?5:1)*3**ctier('k4')*(dsp('plaza')===2?2:1)*(trD('h2')?100:1)*(trD('g4')?1e4:1)*10**Math.min(.5*cxF('pop'),50)*(1+.05*Math.min(trust(),5000)));
+const popCap=()=>capN(1000*(1+cityLv())**2*(1+cd('plaza'))**1.5*(1+.1*rl('r9'))*(nd('z10')?3:1)*(nd('s6')?10:1)*2**Math.min(nl('m4'),900)*5**tp('arch')*thM('arch')*3**pav('city')*(synOn('s9')?5:1)*3**ctier('k4')*(dsp('plaza')===2?2:1)*(trD('h2')?100:1)*(trD('g4')?1e4:1)*10**Math.min(.5*cxF('pop'),50)*(1+.05*Math.min(trust(),5000)));
 const popRate=()=>mtB(2)*(dsp('plaza')===1?2:1)*(cev()===2?2:1)*(bpOn('city2')?3:1)*.0015*(1+.3*cd('plaza'))*(msP(1e8)?2:1)*(1+.01*rl('r9'))*(nd('z4')?2:1);
 const distCost=p=>p.b+p.st*cd(p.id)+4*cd(p.id)**2;
 /* ===================== 수리 공방 ===================== */
@@ -1511,7 +1553,7 @@ function hitL(i){return .75*Math.sqrt(Math.max(0,lastRate))+TOOLS[i].dL+.2*S.rep
 function mgL(i){return (nd('s2')?2:1)*.002*Math.sqrt(1+S.rep.t[i].m)*(1+.05*rl('r11'))*1.1**mast(i)}
 const hpL=n=>2+.5*n+.003*n*n;
 const upkeep=()=>S.rep.best>=1?.02*silverGain(S.rep.best):0;
-const silverGain=n=>capN((trD('g5')?1e4:1)*10**Math.min(cxF('silver'),50)*(trD('h5')?100:1)*(nd('n5')?1e3:1)*(msO(20)?3:1)*(dsp('market')===2?3:1)*(cev()===5?3:1)*mtB(3)*(bpOn('rep2')?5:1)*(synOn('s9')?3:1)*5**tp('rep')*3**pav('rep')*(nd('z8')?3:1)*(nd('s3')?10:1)*1.12**n*(1+.1*rl('r2'))*2**S.rep.ore.u.silver);
+const silverGain=n=>capN((trD('g5')?1e4:1)*10**Math.min(cxF('silver'),50)*(trD('h5')?100:1)*(nd('n5')?1e3:1)*(msO(20)?3:1)*(dsp('market')===2?3:1)*(cev()===5?3:1)*mtB(3)*(bpOn('rep2')?5:1)*(synOn('s9')?3:1)*5**tp('rep')*thM('rep')*3**pav('rep')*(nd('z8')?3:1)*(nd('s3')?10:1)*1.12**n*(1+.1*rl('r2'))*2**S.rep.ore.u.silver);
 const TU=[['s','속도',5,3],['d','수리력',3,2.2],['m','배율',10,2.6]];
 const toolCost=(i,k)=>{const q=TU.find(x=>x[0]===k);return capN(q[2]*q[3]**S.rep.t[i][k]*(i+1)**2)};
 function buyTool(i,k){if(!toolOpen(i))return false;const c=toolCost(i,k);if(c>S.rep.silver)return false;S.rep.silver-=c;S.rep.t[i][k]++;return true}
@@ -1750,6 +1792,11 @@ const ACH=[
  {id:'cq25',n:'믿음직한 공방',d:'신뢰 25',r:'speed',v:1,t:()=>S.cq.trust>=25},
  {id:'cq100',n:'도시의 자랑',d:'신뢰 100',r:'yield',v:3,t:()=>S.cq.trust>=100},
  {id:'warp1',n:'시간 여행자',d:'시간 조각으로 시간을 감기',r:'mesh',v:.25,t:()=>S.cq.warped>0},
+ {id:'th1',  n:'박람회의 얼굴',  d:'박람회 테마 처음 고르기',           r:'yield', v:2,   t:()=>thTot()>=1},
+ {id:'th8',  n:'여덟 해의 축제', d:'박람회 테마 8종을 모두 한 번씩',     r:'speed', v:3,   t:()=>thAll()},
+ {id:'th30', n:'축제의 도시',    d:'박람회 테마 30회',                  r:'mesh',  v:2,   t:()=>thTot()>=30},
+ {id:'th25', n:'한 우물',        d:'한 테마를 25번 고르기',             r:'yield', v:5,   t:()=>Object.values(S.expo.thC||{}).some(v=>v>=25)},
+ {id:'th100',n:'백 년의 박람회', d:'박람회 테마 100회',                 r:'speed', v:5,   t:()=>thTot()>=100},
  {id:'comet', n:'혜성 관측',     d:'핼리 혜성이 지나가는 것을 보기',  r:'speed', v:.10, t:()=>S.comet.seen>=1},
 ];
 const RW={yield:'생산량',speed:'회전 속도',mesh:'맞물림 효과'};
@@ -1794,7 +1841,7 @@ function fresh(){return{numV:3,brass:LZ,run:LZ,all:LZ,runT:0,gears:G.map((_,i)=>
   city:{pop:0,spec:{},d:{plaza:0,market:0,school:0,foundry:0,obs:0,station:0}},
   rep:{lvl:0,best:0,dmg:LZ,silver:0,multL:0,t:TOOLS.map(()=>({s:0,d:0,m:0})),cd:TOOLS.map(()=>0),hit:TOOLS.map(()=>0),rel:{},
     ore:{g:[],heat:0,lus:0,lusT:0,best:0,top:0,pop:-1,u:{spawn:0,grid:0,cool:0,silver:0,dmg:0},pol:0,polT:0,polN:0,mast:[0,0,0,0,0]}},
-  expo:{n:0,fame:0,fameT:0,pav:{},trad:{},hist:[],master:null,cand:[],seed:Math.floor(Math.random()*1e9)},
+  expo:{n:0,fame:0,fameT:0,pav:{},trad:{},hist:[],master:null,cand:[],th:null,thOpt:[],thC:{},seed:Math.floor(Math.random()*1e9)},
   tower:{best:0,bells:0,bellsTotal:0,towers:0,startCr:0,fl:0,flMax:0,mod:[0,0,0,0,0,0,0,0,0,0],g:[0,0,0,0,0],r:[0,0,0,0,0],nodes:{}},
   ach:{},last:Date.now(),buy:'1',sci:false,nota:'',peak:0,stat:{play:0,bestRate:LZ,bestRunL:LZ,fastSpring:0,offline:0}}}
 let S=fresh();
@@ -1811,7 +1858,8 @@ function merge(o){const f=fresh();if(!o||typeof o!=='object')return f;
     else if(k==='cq'&&o.cq){const C=f.cq,Q=o.cq;for(const q of ['t','seq','done','trust','shard','drop','warped'])if(isFinite(+Q[q]))C[q]=+Q[q];C.q=Array.isArray(Q.q)?Q.q.filter(q=>q&&CQ.some(c=>c.k===q.k)):[];Object.assign(C.c,Q.c)}
     else if(k==='trial'){f.trial=typeof o.trial==='string'?o.trial:null}
     else if(k==='expo'&&o.expo){const E=f.expo,Q=o.expo;for(const q of ['n','fame','fameT','seed','hb'])if(isFinite(+Q[q]))E[q]=+Q[q];E.hist=Array.isArray(Q.hist)?Q.hist.filter(h=>h&&Array.isArray(h.t)).slice(-60):[];E.pav=Object.assign({},Q.pav);E.trad=Object.assign({},Q.trad);
-      E.master=Q.master&&Array.isArray(Q.master.t)?Q.master:null;E.cand=Array.isArray(Q.cand)?Q.cand.filter(c=>c&&Array.isArray(c.t)):[]}
+      E.master=Q.master&&Array.isArray(Q.master.t)?Q.master:null;E.cand=Array.isArray(Q.cand)?Q.cand.filter(c=>c&&Array.isArray(c.t)):[];
+      const TI=THEMES.map(t=>t.id);E.th=TI.includes(Q.th)?Q.th:null;E.thOpt=Array.isArray(Q.thOpt)?Q.thOpt.filter(x=>TI.includes(x)):[];E.thC={};if(Q.thC)for(const id of TI)if(isFinite(+Q.thC[id])&&+Q.thC[id]>0)E.thC[id]=Math.floor(+Q.thC[id])}
     else if(k==='city'&&o.city){f.city.pop=isFinite(+o.city.pop)?+o.city.pop:0;Object.assign(f.city.d,o.city.d);f.city.spec=Object.assign({},o.city.spec)}
     else if(k==='bp'&&o.bp){f.bp.own=Object.assign({},o.bp.own);f.bp.slots=Array.isArray(o.bp.slots)?o.bp.slots.slice():[];f.bp.pre=Array.isArray(o.bp.pre)?[0,1,2].map(i=>Array.isArray(o.bp.pre[i])?o.bp.pre[i].slice():[]):[[],[],[]]}
     else f[k]=o[k];}
@@ -1855,7 +1903,7 @@ function springS(){return inC('c6')?1:1+.15*Math.log10(1+springPer()*S.springsTo
 const starY=()=>(1+S.starsTotal)**1.2, starS=()=>1+.5*Math.log10(1+S.starsTotal);
 /* 전체 생산 배율 (log10) */
 function globalY(){let L=lg(AM.yield)+lg(UM.all)+UM.xL+lg(springY())+lg(jewelY())+lg(starY())+lg(crystalY());
-  if(bpOn('big'))L+=1;L+=lg(tm(0))+lg(bellY())+(nd('root')?1:0)+(nd('a1')?2:0)+(nd('a3')?4:0)+(nd('a5')?10:0)+(nd('z2')?10:0)+(nd('s1')?1000:0)+100*nl('m0')+(nd('m5')?1e4:0)+100*tp('gear')+50*pav('gear')+100*Math.log10(1+S.expo.fameT);L+=S.se.spectro*lg(3)+(msA(5)?lg(3):0)+(msA(600)?1:0)+(msA(6000)?2:0);
+  if(bpOn('big'))L+=1;L+=lg(tm(0))+lg(bellY())+(nd('root')?1:0)+(nd('a1')?2:0)+(nd('a3')?4:0)+(nd('a5')?10:0)+(nd('z2')?10:0)+(nd('s1')?1000:0)+100*nl('m0')+(nd('m5')?1e4:0)+100*tp('gear')+thL()+50*pav('gear')+100*Math.log10(1+S.expo.fameT);L+=S.se.spectro*lg(3)+(msA(5)?lg(3):0)+(msA(600)?1:0)+(msA(6000)?2:0);
   if(synOn('s1'))L+=lg(4);if(synOn('s6'))L+=4;if(msF(90))L+=50;if(msPM(600))L+=100;L+=xsBonusL()+5*Math.min(S.se.dome||0,5)+(msM(10000)?20:0)+(trD('e2')?30:0)+(trD('e5')?100:0)+(trD('h6')?1000:0)+30*cxF('prod')+(nd('n7')?5000:0)+(trD('g6')?1e4:0)+(nd('q4')?1e4:0)+oreShowL();if(dsp('market')===1)L+=30;if(msO(50))L+=100;if(cev()===1)L+=20;L+=.1*Math.min(pmSum(),600);if(tmod(0,0)===1)L+=20;if(synOn('s3')&&S.comet.on)L+=lg(20);L+=tierMultL();
   if(msS(1e3))L+=1;L+=ctier('c8')*lg(5);
   if(pl('jupiter'))L+=1.5*lg(own());if(pl('mars'))L+=totTiers()*lg(S.jw.chalPow?2:1.5);
@@ -1976,7 +2024,7 @@ function movement(quiet){const gL=jewelGainL();if(!canReset('jw',gL))return;fast
   S.springs=0;S.springsTotal=Math.max(FLOOR[Math.min(S.jw.springFloor,FLOOR.length-1)]||0,trD('e6')?1e6:0);S.chal=null;
   S.gears.forEach(g=>g.mesh=LZ);windReset(0);
   if(!quiet)toast(`무브먼트 완성. 루비 보석 <b>${fmtL(gL)}개</b>를 얻었습니다.`);after(quiet)}
-function starM(){return 3**Math.min(S.se.refl||0,10)*10**Math.min(cxF('st'),50)*(tr2('m4','g6')?.01:1)*(trD('m4')?100:1)*mtB(6)*(dsp('obs')===1?10:1)*(cev()===3?5:1)*2**Math.min(S.jw.starLink||0,10)*1.5**ctier('k1')*(synOn('s8')?5:1)*(tmod(2,0)===2?5:1)*(tmod(3,0)===1?10:1)*(tmod(3,1)===1?100:1)*(msPM(200)?10:1)*10**tp('st')*3**pav('st')*(nd('c5')?3:1)*(1+.2*rl('r6'))*(1+.3*cd('obs')*popL())*BAL.st*1.2**nPl()*2**S.cr.starAmp*(bpOn('scope')?2:1)*1.25**S.se.lens*tm(3)*(nd('c3')?3:1)*achM('a')}
+function starM(){return 3**Math.min(S.se.refl||0,10)*10**Math.min(cxF('st'),50)*(tr2('m4','g6')?.01:1)*(trD('m4')?100:1)*mtB(6)*(dsp('obs')===1?10:1)*(cev()===3?5:1)*2**Math.min(S.jw.starLink||0,10)*1.5**ctier('k1')*(synOn('s8')?5:1)*(tmod(2,0)===2?5:1)*(tmod(3,0)===1?10:1)*(tmod(3,1)===1?100:1)*(msPM(200)?10:1)*10**tp('st')*thM('st')*3**pav('st')*(nd('c5')?3:1)*(1+.2*rl('r6'))*(1+.3*cd('obs')*popL())*BAL.st*1.2**nPl()*2**S.cr.starAmp*(bpOn('scope')?2:1)*1.25**S.se.lens*tm(3)*(nd('c3')?3:1)*achM('a')}
 const starGainL=()=>tL('jw')<lg(BAL.as)?LZ:1.5*Math.log10(tL('jw')-lg(BAL.as)+1)+lg(starM());
 const starGain=()=>{const g=starGainL();return g<0?0:capN(Math.floor(10**g))};
 const starNeedL=t=>lg(BAL.as)+Math.max(0,(t/starM())**(1/1.5)-1);
@@ -1986,7 +2034,7 @@ function astro(quiet){const gL=starGainL();if(!canReset('st',gL))return;fastRec(
   resetPu(!!S.se.chart);S.springs=0;S.springsTotal=0;S.chal=null;
   S.gears.forEach(g=>g.mesh=LZ);windReset(0);
   if(!quiet)toast(`천문 시계 완성. 별 <b>${fmtL(gL)}개</b>를 얻었습니다.`);after(quiet)}
-function crysM(){return 1.5**Math.min(S.se.chrono||0,5)*10**Math.min(.5*cxF('cr'),30)*(trD('m5')?5:1)*(trTier(1)?10:1)*mtB(8)*(dsp('obs')===2?2:1)*(cev()===0?2:1)*1.5**Math.min(S.jw.timeCut||0,8)*1.5**ctier('k2')*(bpOn('crys2')?2:1)*(synOn('s7')?2:1)*(msPM(100)?2:1)*(tmod(3,1)===2?2:1)*(tmod(4,0)===1?2:1)*(tmod(4,1)===1?5:1)*(msF(50)?2:1)*5**tp('cr')*2**pav('cr')*(nd('c5')?3:1)*(msT(10)?2:1)*(1+.1*rl('r7'))*(1+.3*cd('obs')*popL())*(msP(1e7)?3:1)*1.5**S.cr.crysAmp*(msE(30)?2:1)*tm(4)*(nd('c4')?2:1)*(1+Math.log10(1+S.tower.bellsTotal))**2*achM('e')}
+function crysM(){return 1.5**Math.min(S.se.chrono||0,5)*10**Math.min(.5*cxF('cr'),30)*(trD('m5')?5:1)*(trTier(1)?10:1)*mtB(8)*(dsp('obs')===2?2:1)*(cev()===0?2:1)*1.5**Math.min(S.jw.timeCut||0,8)*1.5**ctier('k2')*(bpOn('crys2')?2:1)*(synOn('s7')?2:1)*(msPM(100)?2:1)*(tmod(3,1)===2?2:1)*(tmod(4,0)===1?2:1)*(tmod(4,1)===1?5:1)*(msF(50)?2:1)*5**tp('cr')*thM('cr')*2**pav('cr')*(nd('c5')?3:1)*(msT(10)?2:1)*(1+.1*rl('r7'))*(1+.3*cd('obs')*popL())*(msP(1e7)?3:1)*1.5**S.cr.crysAmp*(msE(30)?2:1)*tm(4)*(nd('c4')?2:1)*(1+Math.log10(1+S.tower.bellsTotal))**2*achM('e')}
 const crysGainL=()=>nPl()<PLANETS.length||tL('st')<-1e299?LZ:.7*(tL('st')-lg(500))+lg(crysM());
 const crystalGain=()=>{const g=crysGainL();return g<0?0:capN(Math.floor(10**g))};
 const crysNeedL=t=>lg(500)+Math.log10(t/crysM())/.7;
@@ -2000,7 +2048,7 @@ function eternity(quiet){const gL=crysGainL();if(!canReset('cr',gL))return;fastR
   S.gears.forEach(g=>g.mesh=LZ);windReset(0);
   if(!SIMMODE&&!quiet)toast(`영겁을 감았습니다. 시간 결정 <b>${fmtL(gL)}개</b>를 얻었습니다.`);after(quiet)}
 const bellCr=()=>S.crystalsTotal-(S.tower.startCr||0);
-function bellM(){return (trD('g2')?100:1)*trustBell()*10**Math.min(.3*cxF('bell'),30)*(trD('h4')?5:1)*(trTier(2)?10:1)*(nd('n4')?1e3:1)*10**Math.min(nl('q2'),100)*(msO(40)?2:1)*mtB(4)*(dsp('foundry')===1?1.5:1)*(cev()===4?1.5:1)*1.5**ctier('k3')*(bpOn('bell2')?2:1)*(synOn('s7')?2:1)*(msPM(300)?2:1)*(tmod(4,0)===2?1.5:1)*(tmod(4,1)===2?2:1)*(msF(20)?1.5:1)*(msF(70)?2:1)*(msF(100)?10:1)*fameBellM()*3**tp('bell')*2**pav('bell')*(msX(5)?10:1)*(nd('z5')?2:1)*(nd('z12')?3:1)*(nd('s0')?5:1)*(nd('s9')?10:1)*1.5**Math.min(nl('m1'),1500)*(nd('m6')?100:1)*(1+.05*rl('r8'))*(1+.25*cd('foundry')*popL())*(msP(1e5)?2:1)*3*(msT(100)?2:1)*(nd('d5')?2:1)*achM('b')*1.3**S.tower.fl}
+function bellM(){return (trD('g2')?100:1)*trustBell()*10**Math.min(.3*cxF('bell'),30)*(trD('h4')?5:1)*(trTier(2)?10:1)*(nd('n4')?1e3:1)*10**Math.min(nl('q2'),100)*(msO(40)?2:1)*mtB(4)*(dsp('foundry')===1?1.5:1)*(cev()===4?1.5:1)*1.5**ctier('k3')*(bpOn('bell2')?2:1)*(synOn('s7')?2:1)*(msPM(300)?2:1)*(tmod(4,0)===2?1.5:1)*(tmod(4,1)===2?2:1)*(msF(20)?1.5:1)*(msF(70)?2:1)*(msF(100)?10:1)*fameBellM()*3**tp('bell')*thM('bell')*2**pav('bell')*(msX(5)?10:1)*(nd('z5')?2:1)*(nd('z12')?3:1)*(nd('s0')?5:1)*(nd('s9')?10:1)*1.5**Math.min(nl('m1'),1500)*(nd('m6')?100:1)*(1+.05*rl('r8'))*(1+.25*cd('foundry')*popL())*(msP(1e5)?2:1)*3*(msT(100)?2:1)*(nd('d5')?2:1)*achM('b')*1.3**S.tower.fl}
 const bellGain=()=>{if(bellCr()<100)return 0;const g=(Math.log10(bellCr()/100)+1)**2*bellM();return capN(Math.floor(S.trial==='h4'?Math.sqrt(g):g))};
 const bellNeedL=t=>2+Math.max(0,Math.sqrt(t/bellM())-1);
 const floorCost=()=>310+50*S.tower.fl+4*S.tower.fl**2-(msP(1e3)?50:0)-(msF(30)?20:0)-(dsp('foundry')===2?10:0)-(trD('h1')?50:0);
@@ -2051,6 +2099,7 @@ function autoStuff(){
   if((msT(100)||msX(1))&&S.opt.autoTg){let k=0;while(k++<40){let bi=-1,bc=Infinity;for(let i=0;i<TG.length;i++){const c=tgCost(i);if(c<bc){bc=c;bi=i}}if(bi<0||bc>S.tower.bells)break;if(S.opt.autoCon&&CON.some(n=>conAvail(n)&&conCost(n)<=S.tower.bells&&conCost(n)<bc*10))break;buyTg(bi)}}
   checkTrial();if(!S.trial)S.stat.bestCrL=Math.max(S.stat.bestCrL||0,tL('cr'));
   if(msX(3)&&S.opt.autoPav)autoShop(PAV,p=>S.expo.pav[p.id]||0,pavCost,()=>S.expo.fame,buyPav);
+  if((S.expo.thOpt||[]).length&&S.opt.autoTheme&&msTh(10))autoTheme();
   if(S.expo.cand.length&&S.opt.autoPick&&msX(3)){let bi=0,bv=-1;S.expo.cand.forEach((c,i)=>{const v=c.t.reduce((a,t)=>a+GRADE[t.g].v,0);if(v>bv){bv=v;bi=i}});pickCand(bi)}
   if((msT(300)||msX(2))&&S.opt.autoCon){let k=0;while(k++<50){let best=null,bc=Infinity;for(const n of CON)if(conAvail(n)){const c=conCost(n);if(c<bc){bc=c;best=n}}if(!best||bc>S.tower.bells)break;const q=SIMMODE;SIMMODE=true;buyCon(best);SIMMODE=q;conSig=''}}
   if(repOpen())autoRep();
@@ -2169,7 +2218,7 @@ function buildChal(){const L=$('chalList');L.innerHTML='';chRows=[];
     b.onclick=()=>{if(S.chal===c.id)quitChal();else if(!S.chal&&canChal(c))startChal(c.id)};
     chRows.push({c,el,tag:el.querySelector('.tag'),rdy:el.querySelector('.rdy'),rw:el.querySelector('.rw'),st:el.querySelector('.st'),b,bar:el.querySelector('.bar'),fill:el.querySelector('.bar i')})})}
 function buildPlanets(){plSig='';}
-let mtSig=-1,pavRows=[],candSig='',distRows=[],repView='bench',toolRows=[],oreUpRows=[],mastRows=[],repSig='',relSig='',oreSig='';
+let thSig='',mtSig=-1,pavRows=[],candSig='',distRows=[],repView='bench',toolRows=[],oreUpRows=[],mastRows=[],repSig='',relSig='',oreSig='';
 document.querySelectorAll('#repSeg button').forEach(b=>b.onclick=()=>{repView=b.dataset.r;document.querySelectorAll('#repSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));
   ['bench','relic','ore','cx'].forEach(v=>$('rv-'+v).hidden=v!==repView);cxSig='';relSig='';oreSig='';if(repView==='bench')sizeRcv();update()});
 function buildRep(){const L=$('toolList');L.innerHTML='';toolRows=TOOLS.map((t,i)=>{const el=document.createElement('div');el.className='trow';
@@ -2209,6 +2258,15 @@ function refreshOre(){const O=S.rep.ore;while(O.g.length<oreN())O.g.push(0);cons
   const G2=$('oreGrid');G2.style.gridTemplateColumns=`repeat(${oreCols()},minmax(0,1fr))`;
   G2.innerHTML=O.g.slice(0,oreN()).map((v,k)=>v?`<div class="ocell${k===O.pop?' pop':''}" style="background:${oreColor(v)}">${v}</div>`:'<div class="ocell empty">빈 칸</div>').join('');O.pop=-1}
 function buildPav(){pavRows=shopRows('pavList',PAV,p=>{if(buyPav(p))checkAch()},'expo')}
+function refreshThemes(){const E=S.expo,card=$('themeCard');card.hidden=!msX(1);if(card.hidden)return;
+  const sig=JSON.stringify([E.th,E.thOpt,E.thC,thTot()>=100])+nota();if(sig===thSig)return;thSig=sig;
+  const cur=E.th?THEMES.find(t=>t.id===E.th):null;
+  $('themeNow').innerHTML=cur?`<div class="kv"><span>이번 테마</span><b>${cur.n}</b><span>효과</span><b>${cur.d()}</b></div>`:(E.thOpt||[]).length?'<p><b>다음 박람회의 테마를 고르세요.</b> 고르기 전까지는 테마 효과가 없습니다.</p>':'<p>박람회가 끝나면 테마 후보가 나타납니다.</p>';
+  const L=$('themeList');L.innerHTML='';
+  (E.thOpt||[]).forEach(id=>{const T=THEMES.find(t=>t.id===id),c=(E.thC||{})[id]||0,b=document.createElement('button');b.className='planet cand';
+    b.innerHTML=`<span class="t">${T.n}<span>${c}회 고름</span></span><span class="d">${T.d(thC(id)+1)}</span>`;
+    b.onclick=()=>{pickTheme(id);thSig='';update()};L.appendChild(b)});
+  buildMs('themeMs',TH_MS,at=>msTh(at),a=>'테마 '+a+'회')}
 function refreshCands(){const E=S.expo,sig=JSON.stringify(E.cand)+JSON.stringify(E.master)+JSON.stringify(E.trad)+nota();if(sig===candSig)return;candSig=sig;
   $('masterNow').innerHTML=E.master?`<div class="kv"><span>지금 주인</span><b>${candName(E.master)}</b>${E.master.t.map(t=>`<span>${TAL.find(x=>x.id===t.id).n}</span><b>${TAL.find(x=>x.id===t.id).d(GRADE[t.g].v)}</b>`).join('')}</div>`
     :E.cand.length?'<p><b>공방을 물려받을 제자를 고르세요.</b> 고르기 전까지는 주인의 재능이 적용되지 않습니다.</p>':'<p>첫 박람회를 열면 제자 후보가 나타납니다.</p>';
@@ -2484,7 +2542,7 @@ function update(){
     {const lb=Math.log10(Math.max(1,T.bellsTotal)),cur=Math.floor(Math.max(0,lb-20)**2*fameM()),nextB=10**(20+Math.sqrt((Math.max(cur,0)+1)/fameM())*(1+1e-9));
       setProg('pg-expo',g<1?Math.max(0,Math.min(1,lb/21)):Math.max(0,Math.min(1,(lb-21)/Math.max(1e-9,Math.log10(nextB)-21))),g<1?`누적 종 <b>1e21</b>이면 첫 명성`:`명성 하나 더 받으려면 누적 종 <b>${fmt(nextB)}</b>`)}
     $('xHave').textContent=fmt(E.fame);$('xTotal').textContent=fmt(E.fameT);$('xBonus').textContent=`종 ×${fmt(fameBellM())} · 생산 ×${fmtL(100*Math.log10(1+E.fameT))}`;$('xCount').textContent=E.n;
-    refreshCands();
+    refreshCands();refreshThemes();
     pavRows.forEach(o=>{const p=o.p,l=E.pav[p.id]||0,c=pavCost(p),el=pavLv(l);o.lv.textContent='Lv '+l+(el>l?` (효과 ${el}단계)`:'');o.st.textContent=p.d(el)+(l<100?` · ${l<25?25:l<50?50:100}단계에 보너스 단계 +${l<25?5:l<50?10:25}`:'');o.b.querySelector('.l').textContent='짓기';o.b.querySelector('.c').textContent='명성 '+fmt(c);o.b.disabled=c>E.fame})}
   if(tab==='over')refreshOver();
   if(tab==='trial')refreshTrials();
@@ -2543,6 +2601,12 @@ function renderAll(){rq=0;rqT=performance.now();achDirty=0;buildGears();buildUpg
 
 /* ===================== 기록 탭 ===================== */
 const LOG=[
+ {v:'v28 · 박람회 테마',t:'11월 12일 밤',items:[
+  '<b>박람회 테마</b>: 첫 박람회 뒤부터, 박람회가 끝날 때마다 다음 박람회의 테마를 후보 3개 중에서 고릅니다. 종·별·시간 결정·주민·은화·생산량·명성·제자 중 하나가 크게 오릅니다.',
+  '같은 테마를 여러 번 고를수록 그 테마 효과가 커집니다(최대 25회분). 박람회 반복이 매번 같지 않게, 그리고 어떤 테마를 키울지 고르는 재미가 생기게 했습니다.',
+  '테마 이정표 5개: 10회에 <b>테마 자동 선택</b>(가장 덜 고른 테마부터), 30회에 후보 4개, 60회에 가문 전통 ×1.5, 100회에 모든 테마 +5단계.',
+  '테마 업적 5개를 추가했습니다.',
+ ]},
  {v:'v27.3 · 휴대폰 렉 줄이기',t:'11월 12일 밤',items:[
   '자동 태엽 감기·무브먼트 같은 <b>자동 리셋이 연달아 일어나도</b> 화면 전체를 다시 만드는 일은 1.5초에 한 번으로 모았습니다.',
   '업적 목록은 업적 탭을 볼 때만 새로 그립니다.',
@@ -3069,7 +3133,7 @@ addEventListener('pagehide',save);
 
 function start(data){
   let o=null;if(data&&data.s){try{o=JSON.parse(data.s)}catch(e){}}if(!o)o=loadLocal();
-  S=merge(o);recalcAM();offline();checkChal();checkAch();resize();renderAll();
+  S=merge(o);recalcAM();if(S.expo.n>0&&!S.expo.th&&!(S.expo.thOpt||[]).length)makeThemes();offline();checkChal();checkAch();resize();renderAll();
   if(!o)toast('Ⅰ번 톱니가 돌기 시작했습니다. 황동을 모아 다음 톱니를 설치하세요.');
   requestAnimationFrame(t=>{lastT=t;requestAnimationFrame(frame)});
 }
