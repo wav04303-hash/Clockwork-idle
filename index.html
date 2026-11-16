@@ -1483,7 +1483,7 @@ const dyE=(t,d)=>{const v=dyEff()[t];return v===undefined?d:v};
 const dyK=()=>Math.min(S.dy.sh||0,8);
 const dyEta=k=>k?1-DY_T[k-1]/5800:0;
 const dyCapL=k=>k?Math.log10(10*8**(k-1)*5800/DY_T[k-1]*dyE('heat',1)):0;
-const dyTd=()=>1800*dyE('td',1)*(msDy(40)?.5:1);
+const dyTd=()=>1800*Math.min(1,(S.dy.n+1)/10)*dyE('td',1)*(msDy(40)?.5:1);
 const dyRateL=()=>{const k=dyK();return k?S.dy.PL+Math.log10(dyEta(k)*5800/DY_T[k-1]*dyE('rate',1)):-1e300};
 const dyPicksN=()=>1+(msDy(10)?1:0)+(msDy(25)?1:0)+(dyE('more',0)?1:0);
 const dyPend=()=>{for(let k=0;k<dyK();k++){const t=S.dy.pk[k]||[];if(t.length<Math.min(3,dyPicksN()))return k}return -1};
@@ -2470,7 +2470,7 @@ let dySig='';
 function refreshDy(){if(tab!=='dy')return;const D=S.dy,k=dyK();
   $('dyC').textContent=fmt(D.c);$('dyCT').textContent=fmt(D.cT);$('dyP').textContent=k?fmtL(D.PL):'껍질을 먼저 두르세요';$('dyR').textContent=k?fmtL(dyRateL())+'/초 · 누적 '+(D.DL>-1e299?fmtL(D.DL):'0'):'—';
   $('dyBell').textContent='×'+fmtL(dyBellL());$('dyN').textContent=fmt(D.n);
-  const cap=dyCapL(k);setProg('pg-dyheat',k?Math.min(1,D.PL/cap):0,!k?'첫 껍질을 두르면 패널이 늘어나기 시작합니다':D.PL>=cap-1e-9?`폐열 한도에 닿았습니다 · 다음 껍질을 두르면 한도 ×8`:`폐열 한도까지 ${Math.floor(D.PL/cap*100)}% · 2배마다 ${fmtT(dyTd())}`);
+  const cap=dyCapL(k);setProg('pg-dyheat',k?Math.min(1,D.PL/cap):0,!k?'첫 껍질을 두르면 패널이 늘어나기 시작합니다':D.PL>=cap-1e-9?`폐열 한도에 닿았습니다 · 다음 껍질을 두르면 한도 ×8`:`폐열 한도까지 ${Math.floor(D.PL/cap*100)}% · 2배마다 ${fmtT(dyTd())}${D.PL<cap?` · 포화까지 약 ${fmtT((cap-D.PL)/Math.log10(2)*dyTd())}`:''}`);
   const c=dyShellCost();$('shellLbl').textContent=k<8?`${DY_SH[k].n} 두르기`:'껍질 8겹 완성';$('shellCost').textContent=k<8?'연산 '+fmt(c):'—';$('shellBtn').disabled=k>=8||c>D.c;
   const g=igGain();$('igGainN').textContent=g>=1?'연산 +'+fmt(g):!dySat()?'폐열 한도에 닿으면 점화 가능':'이번 회차 종 1e121 필요';$('igBtn').disabled=g<1;
   const pend=dyPend(),sig=JSON.stringify([D.pk,k,pend,D.n])+nota();if(sig===dySig)return;dySig=sig;
@@ -2840,6 +2840,10 @@ function renderAll(){rq=0;rqT=performance.now();achDirty=0;buildGears();buildUpg
 
 /* ===================== 기록 탭 ===================== */
 const LOG=[
+ {v:'v30.3 · 스웜 초반 가속',t:'11월 17일 아침',items:[
+  '스웜 초반이 너무 느려서, <b>점화 10회까지는 패널 복제 주기가 짧아집니다</b>. 첫 점화 전 3분 → 점화할 때마다 늘어나 10회째부터 원래대로 30분입니다.',
+  '폐열 막대에 <b>포화까지 남은 시간</b>을 함께 보여 줍니다.',
+ ]},
  {v:'v30.2 · 성좌도가 꺼져도 편의 효과는 유지',t:'11월 17일 아침',items:[
   '성좌도 효과가 꺼지는 의뢰·시험(빈 하늘, 별 없는 밤, 녹슨 하늘)에서도 <b>편의 효과는 그대로</b> 켜져 있습니다: 자동으로 얻는 태엽·보석·별·시간 결정과 그 비율, 자리 비움 한도 48시간, 이정표 항상 전부 적용.',
  ]},
