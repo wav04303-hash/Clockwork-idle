@@ -537,6 +537,7 @@ textarea{width:100%;min-height:80px;background:var(--bg);color:var(--fg);border:
         <button class="tab" role="tab" data-t="move" aria-selected="false" id="moveTab" hidden>무브먼트<span class="dot r" id="moveDot" hidden></span></button>
         <button class="tab" role="tab" data-t="astro" aria-selected="false" id="astroTab" hidden>천문<span class="dot a" id="astroDot" hidden></span></button>
         <button class="tab" role="tab" data-t="eter" aria-selected="false" id="eterTab" hidden>영겁<span class="dot e" id="eterDot" hidden></span></button>
+        <button class="tab" role="tab" data-t="dy" aria-selected="false" id="dyTab" hidden>스웜<span class="dot x" id="dyDot" hidden></span></button>
         <button class="tab" role="tab" data-t="tower" aria-selected="false" id="towerTab" hidden>시계탑<span class="dot b" id="towerDot" hidden></span></button>
         <button class="tab" role="tab" data-t="con" aria-selected="false" id="conTab" hidden>성좌도<span class="dot b" id="conDot" hidden></span></button>
         <button class="tab" role="tab" data-t="city" aria-selected="false" id="cityTab" hidden>도시<span class="dot c" id="cityDot" hidden></span></button>
@@ -832,6 +833,31 @@ textarea{width:100%;min-height:80px;background:var(--bg);color:var(--fg);border:
         </div>
       </section>
 
+      <section id="p-dy" hidden>
+        <div class="list">
+          <div class="card">
+            <h3>다이슨 스웜</h3>
+            <p>태양을 태엽 패널로 감쌉니다. 패널은 스스로 복제하며 늘어나지만, 쌓인 폐열이 껍질의 방열 한도에 닿으면 멈춥니다. 바깥에 껍질을 하나 더 두르면 한도가 8배로 늘고 효율도 올라 다시 늘어납니다. <b>점화</b>하면 박람회 회차(시계탑과 그 아래)가 초기화되고, 이번 회차 종과 패널이 계산한 양에 따라 연산을 얻습니다. 점화는 패널이 폐열 한도에 닿았을 때 할 수 있습니다. 명성·전시관·박람회 횟수·항로·성좌도는 그대로입니다.</p>
+            <canvas class="orrery" id="dcv" aria-label="태양 둘레의 껍질 여덟 겹과 패널"></canvas>
+            <div class="kv">
+              <span>연산</span><b id="dyC">0</b>
+              <span>지금까지 모은 연산</span><b id="dyCT">0</b>
+              <span>패널 수</span><b id="dyP">0</b>
+              <span>연산 속도 (점화 때 반영)</span><b id="dyR">—</b>
+              <span>종 획득량 배율</span><b id="dyBell">×1</b>
+              <span>점화 횟수</span><b id="dyN">0</b>
+            </div>
+            <div class="prog expo" id="pg-dyheat"><div class="pbar"><i></i></div><span></span></div>
+            <div class="toolbar"><button class="btn" id="shellBtn"><span class="l" id="shellLbl">껍질 짓기</span><span class="c" id="shellCost">—</span></button>
+              <button class="btn" id="igBtn"><span class="l" id="igLbl">점화</span><span class="c" id="igGainN">—</span></button></div>
+            <div data-auto="autoShell"></div><div data-auto="autoDyPick"></div><div data-auto="autoIg"></div>
+          </div>
+          <div class="card" id="dyPendCard" hidden><h3>껍질 장점 고르기</h3><div class="planets" id="dyOpts"></div></div>
+          <div class="card"><h3>껍질</h3><div class="ms" id="dyShells"></div></div>
+          <div class="card"><h3>점화 이정표</h3><div class="ms" id="dyMs"></div></div>
+        </div>
+      </section>
+
       <section id="p-trial" hidden>
         <div class="list">
           <div class="card"><h3>장인 시험</h3><p>첫 박람회 뒤에 열립니다. 시험을 시작하면 박람회 직후처럼 시계탑과 그 아래가 초기화되고(명성·제자는 그대로), 제약이 걸린 채 등급별 목표를 이뤄야 합니다. 목표는 시작할 때의 내 최고 기록으로 정해져서(견습은 최고 회차 황동 자릿수의 90%, 숙련은 최고 누적 결정의 1000배, 명장은 최고 누적 종 갱신), 진행이 쌓여도 쉬워지지 않습니다. 통과하면 규칙을 바꾸는 보상을 영구히 받습니다. 실패해도 손해는 없고, 언제든 그만두면 지금 상태로 이어집니다. 한 등급의 시험 6개를 모두 통과하면 다음 등급이 열리고 등급 보상이 붙습니다.</p>
@@ -858,6 +884,7 @@ textarea{width:100%;min-height:80px;background:var(--bg);color:var(--fg);border:
             <div class="toolbar"><span>한 번에 강화할 단계</span><div class="seg" id="toolBuySeg"><button data-tb="1" aria-pressed="true">×1</button><button data-tb="5" aria-pressed="false">×5</button><button data-tb="10" aria-pressed="false">×10</button><button data-tb="max" aria-pressed="false">최대</button></div></div>
             <div class="list" id="toolList"></div>
             <div class="card"><h3>기계 도감</h3><p>고친 기계는 종류마다 기록됩니다. 같은 종류를 한 대 고칠 때마다 그 기계와 어울리는 효과가 5%씩 오릅니다. 기계는 열 종류가 차례로 들어옵니다.</p><div class="ms" id="mtList"></div></div>
+            <div class="card"><h3>기계 도감 2권</h3><p>지금까지 고친 기계의 총 대수에 따라 이정표가 쌓입니다.</p><p class="summary" id="mt2Head"></p><div class="ms" id="mt2List"></div></div>
           </div>
           <div id="rv-relic" class="list" hidden>
             <div class="card"><h3>골동 부품</h3><p>은화로 사서 강화하는 영구 부품입니다. 수리한 기계 수에 따라 하나씩 나타납니다. 강화 비용은 단계마다 1.3배씩 오릅니다. 100단계부터 봉헌할 수 있습니다. 봉헌하면 단계가 0으로 돌아가는 대신 그 부품의 효과가 영구히 커집니다(30단계분 + 25%씩). 봉헌할 때마다 그 부품의 강화 비용은 1000배가 됩니다.</p></div>
@@ -1183,13 +1210,16 @@ const AUTOS=[
  {id:'autoBp',    n:'설계도 자동 구매',      d:'결정이 생기는 대로 설계도를 사고 빈 슬롯만 채움 (장착 교체는 직접)', ok:()=>msE(8), lock:'영겁 8회', v:OO},
  {id:'autoEquip', n:'기구 자동 장착',        d:'점수가 가장 높은 복잡 기구를 칸 수만큼 장착', ok:()=>cxOpen(), lock:'기계 100대 수리', v:OO},
  {id:'autoPav',   n:'전시관 자동 건설',      d:'명성이 생기는 대로 가장 싼 전시관부터', ok:()=>msX(3), lock:'박람회 3회', v:OO},
- {id:'autoSac',   n:'골동 부품 자동 봉헌',    d:'100단계에 닿은 부품을 봉헌 (봉헌 뒤 1단계 비용을 은화 절반 이하로 낼 수 있을 때만)', ok:()=>RELICS.some(p=>{const r=S.rep.rel[p.id];return r&&(r.lv>=100||r.sac>0)}), lock:'골동 부품 하나 100단계', v:OO},
+ {id:'autoSac',   n:'골동 부품 자동 봉헌',    d:'100단계에 닿은 부품을 봉헌 (봉헌 뒤 1단계 비용을 은화 절반 이하로 낼 수 있을 때만)', ok:()=>mt2(5)||RELICS.some(p=>{const r=S.rep.rel[p.id];return r&&(r.lv>=100||r.sac>0)}), lock:'골동 부품 하나 100단계', v:OO},
  {id:'autoSalv',  n:'일반 기구 자동 분해',    d:'새로 들어온 일반 등급 기구를 장착 후보보다 약하면 바로 분해', ok:()=>cxOpen()&&S.cx.found>=20, lock:'복잡 기구 20개 발견', v:OO},
  {id:'autoChal',  n:'추천 의뢰 자동 수행',    d:'추천 표시가 붙은 의뢰(평소 최고 황동이 목표의 10배 이상)를 하나씩 자동으로 받아 완수 (시험·의뢰 중이 아닐 때)', ok:()=>allTiers()>=20, lock:'의뢰 단계 20개 완수', v:OO},
  {id:'autoTg',    n:'탑 톱니 자동 강화',      d:'종이 모이는 대로 가장 싼 탑 톱니부터 (성좌 자동 잇기가 켜져 있으면 별을 먼저)', ok:()=>msT(100)||msX(1), lock:'누적 종 100', v:OO},
  {id:'autoTower', n:'자동 시계탑',          d:'받을 종이 누적 종 이상이 되면 시계탑을 세움', ok:()=>msT(30)||msX(1), lock:'누적 종 30', v:OO},
  {id:'autoCon',   n:'성좌 자동 잇기',        d:'종이 모이는 대로 지금 이을 수 있는 가장 싼 별부터 이음 (은하수 강화 포함)', ok:()=>msT(300)||msX(2), lock:'누적 종 300', v:OO},
  {id:'autoSea',   n:'자동 정박',              d:'정박지에 닿으면 남은 장점 중 첫 번째를 바로 고르기', ok:()=>msSea(9), lock:'정박 9회', v:OO},
+ {id:'autoShell', n:'자동 껍질 짓기',        d:'연산이 모이면 다음 껍질을 바로 짓기', ok:()=>msDy(3), lock:'점화 3회', v:OO},
+ {id:'autoDyPick', n:'껍질 장점 자동 선택',   d:'고를 수 있는 껍질 장점을 덜 고른 순서대로 고르기', ok:()=>msDy(5), lock:'점화 5회', v:OO},
+ {id:'autoIg',    n:'자동 점화',              d:'패널이 폐열 한도에 닿고 종이 1e121을 넘으면 바로 점화', ok:()=>msDy(15)||dyE('autoIg',0)>0, lock:'점화 15회', v:OO},
  {id:'autoTheme', n:'테마 자동 선택',        d:'박람회가 끝나면 가장 덜 고른 테마를 이번 테마로', ok:()=>msTh(10), lock:'테마 10회', v:OO},
  {id:'autoPick',  n:'제자 자동 선택',        d:'박람회가 끝나면 재능 등급 합이 가장 높은 후보를 공방 주인으로', ok:()=>msX(3), lock:'박람회 3회', v:OO},
  {id:'autoExpo',  n:'자동 박람회',           d:'받을 명성이 누적 명성 이상이 되면 박람회를 엶', ok:()=>msX(5), lock:'박람회 5회', v:OO},
@@ -1349,7 +1379,7 @@ const THEMES=[
  {id:'fame',n:'흥행의 해',  d:c=>`명성 획득량 ×${thV('fame',c).toFixed(2)}`},
  {id:'heir',n:'장인의 해',  d:c=>`다음 제자 후보가 명장일 확률 +${Math.round(100*thV('heir',c))}%p`},
 ];
-const thC=id=>Math.min(((S.expo.thC||{})[id]||0)+(thTot()>=100?5:0)+(S.sea&&msSea(27)?5:0),35)+(nd('o2')?1:0);
+const thC=id=>Math.min(((S.expo.thC||{})[id]||0)+(thTot()>=100?5:0)+(S.sea&&msSea(27)?5:0),35)+(nd('o2')?1:0)+dyE('th',0);
 /* 같은 테마를 여러 번 고를수록 효과가 커짐 (최대 25회분) */
 function thV(id,c){c=c==null?thC(id):Math.min(c,35);const k=1+.04*c;
   return id==='st'?10**(2*k):id==='gear'?200*k:id==='fame'?1.5+.02*c:id==='heir'?.2+.004*c:10**k}
@@ -1366,7 +1396,7 @@ const TH_MS=[
  {at:100,d:'모든 테마 효과 단계 +5'},
 ];
 const msTh=at=>thTot()>=at;
-function makeThemes(){const E=S.expo,r=rng(E.n*7919+E.seed+17),N=Math.min(8,(msTh(30)?4:3)+(S.sea&&msSea(9)?1:0)+(nd('x2')?1:0)),pool=THEMES.map(t=>t.id);
+function makeThemes(){const E=S.expo,r=rng(E.n*7919+E.seed+17),N=Math.min(8,(msTh(30)?4:3)+(S.sea&&msSea(9)?1:0)+(nd('x2')?1:0)+dyE('thOpt',0)),pool=THEMES.map(t=>t.id);
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}E.thOpt=pool.slice(0,N)}
 function pickTheme(id){const E=S.expo;if(!(E.thOpt||[]).includes(id))return;E.th=id;E.thOpt=[];E.thC=E.thC||{};E.thC[id]=(E.thC[id]||0)+1;
   if(!SIMMODE){toast(`이번 박람회 테마: <b>${THEMES.find(t=>t.id===id).n}</b>`);thSig=''}}
@@ -1399,9 +1429,9 @@ let seaCache=null;
 function seaEff(){if(!seaCache){const c={gear:0};for(const pi in S.sea.pick)for(const j of S.sea.pick[pi]){const [t,v]=PORTS[pi].o[j];
     if(t==='gear')c.gear+=v;else if(t==='pav'||t==='fame'||t==='dist')c[t]=(c[t]||1)*v;else c[t]=(c[t]||0)+v}seaCache=c}return seaCache}
 const SEA_XL=['spr','jw','st','cr','bell'];
-const seaM=t=>{const e=seaEff();return t==='pav'||t==='fame'||t==='dist'?(e[t]||1):10**((e[t]||0)*(nd('x1')?1.5:1)+(nd('x5')&&SEA_XL.includes(t)?50:0))};
-const seaL=()=>seaEff().gear*(nd('x1')?1.5:1);
-const seaGainOf=g=>seaOpen()?Math.floor((4+3*Math.log10(1+g))*seaM('dist')*(msSea(18)?1.5:1)*(nd('o1')?1.2:1)*(nd('x0')?1.5:1)):0;
+const seaM=t=>{const e=seaEff();return t==='pav'||t==='fame'||t==='dist'?(e[t]||1):10**((e[t]||0)*(nd('x1')?1.5:1)*dyE('sea',1)+(nd('x5')&&SEA_XL.includes(t)?50:0))};
+const seaL=()=>seaEff().gear*(nd('x1')?1.5:1)*dyE('sea',1);
+const seaGainOf=g=>seaOpen()?Math.floor((4+3*Math.log10(1+g))*seaM('dist')*(msSea(18)?1.5:1)*(nd('o1')?1.2:1)*(nd('x0')?1.5:1)*dyE('dist',1)):0;
 function seaSail(g){if(!seaOpen())return 0;const d=seaGainOf(g);S.sea.dT+=d;S.sea.voy++;return d}
 function seaPick(j){const k=seaPend();if(k<0)return;const pi=k%PORTS.length;if(!seaOpts(k).includes(j))return;
   (S.sea.pick[pi]=S.sea.pick[pi]||[]).push(j);S.sea.next++;seaCache=null;
@@ -1415,6 +1445,69 @@ const SEA_MS=[
 ];
 const msSea=at=>S.sea.next>=at;
 function autoTheme(){const E=S.expo;if(!(E.thOpt||[]).length)return;let bi=E.thOpt[0];for(const id of E.thOpt)if(thC(id)<thC(bi))bi=id;pickTheme(bi)}
+/* ---------- 다이슨 스웜 (v30) ---------- */
+/* 점화: 박람회 회차(시계탑 아래)를 리셋하고 연산을 얻는다. 명성·전시관·박람회 횟수·항로·성좌도는 그대로.
+   껍질을 지으면 패널이 스스로 복제하며 늘고(지수), 폐열 한도에서 멈춘다. 다음 껍질이 한도를 8배로 올린다. */
+const DY_T=[1200,600,300,150,60,20,8,3];
+const DY_SH=[
+ {n:'수성 궤도 고리',   w:'태양 가까이라 뜨거워서 버리는 열이 많아요.',              o:[['td',.8],['bell',10],['ig',2]]},
+ {n:'금성 궤도 고리',   w:'한 겹 바깥은 온도가 반으로 내려가 효율이 90%가 돼요.',    o:[['fame',3],['dist',1.3],['ret',20]]},
+ {n:'지구 궤도 고리',   w:'300 K, 우리가 사는 온도예요. 효율 95%.',               o:[['th',1],['pav',.5],['rate',3]]},
+ {n:'소행성대 껍질',     w:'150 K까지 식혀 효율 97%.',                          o:[['silv',6],['cxq',10],['td',.8]]},
+ {n:'목성 궤도 껍질',   w:'60 K, 효율 99%. 이제 버리는 열이 거의 없어요.',          o:[['bell',20],['con',.1],['ig',2]]},
+ {n:'해왕성 궤도 껍질', w:'20 K, 효율 99.7%.',                                o:[['sea',1.5],['thOpt',1],['heat',2]]},
+ {n:'카이퍼대 껍질',     w:'8 K, 효율 99.9%. 카르노 한계에 다가가요.',             o:[['prod',5e4],['rate',10],['autoIg',1]]},
+ {n:'마트료시카 브레인', w:'3 K, 우주배경복사와 거의 같은 온도. 효율 99.95%.',     o:[['bell',50],['qc',1e-20],['more',1]]},
+];
+const DY_TXT={td:v=>`복제 주기 ×${v}`,bell:v=>`종 획득량 ×1e${v}`,ig:v=>`점화 연산 ×${v}`,fame:v=>`명성 획득량 ×${v}`,dist:v=>`항로 거리 ×${v}`,ret:v=>`점화 직후 종 1e${v}로 시작`,
+ th:v=>`모든 박람회 테마 +${v}단계`,pav:v=>`전시관 비용 ×${v}`,rate:v=>`연산 속도 ×${v}`,silv:v=>`은화·원석 광휘 ×1e${v}`,cxq:v=>`복잡 기구 품질 +${v}`,
+ con:v=>`성좌도 비용 ×${v}`,sea:v=>`정박지 장점 효과 ${v}제곱`,thOpt:v=>`박람회 테마 후보 +${v}`,heat:v=>`폐열 한도 ×${v}`,prod:v=>`모든 생산량 ×1e${fmt(v)}`,
+ autoIg:()=>'자동 점화 해금',qc:()=>'은하단 비용 ×1e-20',more:()=>'모든 껍질에서 장점 하나 더 고르기'};
+const DY_C=[0,1000,8000,2.5e4,1e5,7e5,3e6,1.2e7]; /* k겹에서 k+1겹으로 (1겹은 열릴 때 무료) */
+const DY_BL=[0,5,12,20,30,45,65,90,125];
+const DY_MS=[
+ {at:1, d:'점화 직후 종 1e15로 시작 (박람회까지 빠른 복귀)'},
+ {at:3, d:'자동 껍질 짓기 해금'},
+ {at:5, d:'껍질 장점 자동 선택 해금'},
+ {at:10,d:'껍질마다 장점 하나 더'},
+ {at:15,d:'자동 점화 해금'},
+ {at:25,d:'껍질마다 마지막 장점'},
+ {at:40,d:'복제 주기 ×0.5'},
+];
+const msDy=at=>(S.dy.n||0)>=at;
+const dyOpen=()=>nd('q0')||(S.dy.n||0)>0||(S.dy.sh||0)>0;
+let dyCache=null;
+function dyEff(){if(!dyCache){const c={};for(const k in S.dy.pk)for(const j of S.dy.pk[k]){const o=DY_SH[k]&&DY_SH[k].o[j];if(!o)continue;const [t,v]=o;
+    if(t==='td'||t==='pav'||t==='con'||t==='qc')c[t]=(c[t]||1)*v;else if(t==='fame'||t==='dist'||t==='ig'||t==='rate'||t==='heat'||t==='sea')c[t]=(c[t]||1)*v;else c[t]=(c[t]||0)+v}dyCache=c}return dyCache}
+const dyE=(t,d)=>{const v=dyEff()[t];return v===undefined?d:v};
+const dyK=()=>Math.min(S.dy.sh||0,8);
+const dyEta=k=>k?1-DY_T[k-1]/5800:0;
+const dyCapL=k=>k?Math.log10(10*8**(k-1)*5800/DY_T[k-1]*dyE('heat',1)):0;
+const dyTd=()=>1800*dyE('td',1)*(msDy(40)?.5:1);
+const dyRateL=()=>{const k=dyK();return k?S.dy.PL+Math.log10(dyEta(k)*5800/DY_T[k-1]*dyE('rate',1)):-1e300};
+const dyPicksN=()=>1+(msDy(10)?1:0)+(msDy(25)?1:0)+(dyE('more',0)?1:0);
+const dyPend=()=>{for(let k=0;k<dyK();k++){const t=S.dy.pk[k]||[];if(t.length<Math.min(3,dyPicksN()))return k}return -1};
+function dyPick(k,j){if(k>=dyK())return;const t=S.dy.pk[k]=S.dy.pk[k]||[];if(t.includes(j)||t.length>=Math.min(3,dyPicksN()))return;t.push(j);dyCache=null;seaCache=null;
+  if(!SIMMODE)toast(`<b>${DY_SH[k].n}</b> · ${DY_TXT[DY_SH[k].o[j][0]](DY_SH[k].o[j][1])}`)}
+function autoDyPick(){let n=0;while(dyPend()>=0&&n++<30){const k=dyPend(),t=S.dy.pk[k]||[];dyPick(k,[0,1,2].find(j=>!t.includes(j)))}}
+const dyShellCost=()=>dyK()>=1&&dyK()<8?DY_C[dyK()]:Infinity;
+const dySat=()=>dyK()>=1&&S.dy.PL>=dyCapL(dyK())-1e-9;
+function buyShell(){const c=dyShellCost();if(!dyOpen()||c>S.dy.c)return false;S.dy.c-=c;S.dy.sh=dyK()+1;if(!SIMMODE)toast(`<b>${DY_SH[dyK()-1].n}</b>을(를) 둘렀습니다. 폐열 한도가 늘어 패널이 다시 늘어납니다.`);return true}
+/* 점화로 얻는 연산: (log₁₀ 이번 회차 누적 종 − 120)² × (1 + log₁₀(1 + 이번 회차 연산량)) × 배율. 패널이 폐열 한도에 닿아야 점화할 수 있다. */
+const igGain=()=>{const b=S.tower.bellsTotal;if(!dyOpen()||b<1e121||!dySat())return 0;const x=Math.log10(b)-120;return capN(Math.floor(x*x*(1+Math.max(0,S.dy.DL))*dyE('ig',1)))};
+function ignite(){const g=igGain();if(g<1)return;const D=S.dy,T=S.tower,E=S.expo;
+  /* v30: 점화 = 박람회 + 점화 (이번 회차 명성도 함께 받음) */
+  const fg=fameGain();let sd=0;
+  if(fg>=1){if(E.master){for(const t of E.master.t)E.trad[t.id]=(E.trad[t.id]||0)+GRADE[t.g].v;(E.hist=E.hist||[]).push({n:E.n+1,t:E.master.t});if(E.hist.length>60)E.hist.shift()}
+    E.hb=(E.master?E.master.t.filter(t=>t.id==='heir').reduce((a,t)=>a+GRADE[t.g].v,0):0)*.1;E.fame=capN(E.fame+fg);E.fameT=capN(E.fameT+fg);E.n++;E.master=null;sd=seaSail(fg)}
+  D.c=capN(D.c+g);D.cT=capN(D.cT+g);D.n++;D.PL=0;D.DL=-1e300;D.last=g;
+  T.best=Math.max(T.best||0,T.bellsTotal);T.bells=0;T.bellsTotal=Math.max(msX(8)?1e9:msX(2)?1e6:0,msDy(1)?1e15:0,10**dyE('ret',0));T.towers=0;
+  S.city.pop=Math.min(S.city.pop,1e4);towerReset();if(fg>=1){makeCands();E.th=null;makeThemes()}
+  if(!SIMMODE)toast(`태양 둘레에 점화했습니다. 연산 <b>${fmt(g)}</b>을 얻었습니다.${fg>=1?` 박람회도 함께 열려 명성 <b>${fmt(fg)}</b>${sd?`, 항로 <b>+${fmt(sd)}</b>`:''}을 얻었습니다.`:''}`);after()}
+function dyTick(dt){const D=S.dy;if(!D.sh&&nd('q0')){D.sh=1;dyCache=null}const k=dyK();if(!k)return;
+  const cap=dyCapL(k);D.PL=Math.min(cap,D.PL+dt/dyTd()*Math.LOG10E*Math.LN2);D.H=D.PL+Math.log10(DY_T[k-1]/5800);
+  D.DL=la(D.DL,dyRateL()+Math.log10(dt))}
+const dyBellL=()=>DY_BL[dyK()]+dyE('bell',0)+Math.log10(1+S.dy.cT)/2;
 /* ---------- 장인 시험 ---------- */
 const trGoalV=t=>t===0?Math.max(600,Math.floor(.9*Math.max(0,S.stat.bestRunL))):t===1?Math.max(40,Math.ceil(S.stat.bestCrL||0)+3):t===2?Math.max(20,Math.ceil(Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal)))):Math.max(23,Math.ceil(Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal)))+3);
 const trGoalTxt=(t,v)=>t===0?`이번 회차 황동 1e${fmt(v)}`:t===1?`누적 시간 결정 1e${fmt(v)}`:`누적 종 1e${fmt(v)}`;
@@ -1469,7 +1562,7 @@ const cxDropT=()=>600/(1+.1*Math.min(S.expo.n,50))/(trD('h5')?2:1)/(nd('n0')?2:1
 const cxSlots=()=>3+(trTier(3)?1:0)+(msX(5)?1:0)+(msX(10)?1:0)+(trTier(2)?1:0)+(nd('n3')?1:0);
 const cxSet=()=>{const c={};if(S.cx)for(const id of S.cx.eq){const it=S.cx.items.find(q=>q.id===id);if(it)c[it.k]=(c[it.k]||0)+1}return c};
 const cxSetM=n=>(n>=2?1.5:1)*(n>=3?1.3:1);
-const cxX=(it,a)=>a.v*(Math.min(150,it.q+5*Math.min(nl('q3'),10))/100)*(1+.1*it.lv);
+const cxX=(it,a)=>a.v*(Math.min(150,it.q+5*Math.min(nl('q3'),10)+(mt2(4)?5:0)+dyE('cxq',0))/100)*(1+.1*it.lv);
 const cxScore=it=>it.a.reduce((s,a)=>s+cxX(it,a),0);
 function cxRoll(){const C=S.cx,r=Math.random,lu=Math.min(.1,.002*S.expo.n)+(nd('n6')?.03:0),x=r();const rar=x<.02+lu?3:x<.12+lu?2:x<.4?1:0;
   const k=Math.floor(r()*CXT.length),a=[{s:CXT[k].m,v:.5+.5*r()}];while(a.length<rar+1){const s=CXK[Math.floor(r()*CXK.length)];if(!a.some(q=>q.s===s))a.push({s,v:.5+.5*r()})}
@@ -1488,12 +1581,12 @@ function cxF(s){if(!S.cx)return 0;if(!cxCache){cxCache={};const sc=cxSet();for(c
 function cxStep(dt){if(!cxOpen())return;const C=S.cx;C.t+=dt;let k=0;const T=cxDropT();while(C.t>=T&&k++<60){C.t-=T;cxGain(cxRoll())}if(C.t>T)C.t=T;if(S.opt.autoEquip)cxAutoEquip()}
 const pavLv=l=>l+(l>=25?5:0)+(l>=50?10:0)+(l>=100?25:0);
 const pav=id=>S.chal==='k6'||tr2('h5','g5')?0:Math.min(pavLv(S.expo.pav[id]||0),600);
-const pavCost=p=>capN(p.c*p.k**(S.expo.pav[p.id]||0)*.8**Math.min(tp('cur'),20)*seaM('pav')*(nd('o3')?.5:1));
+const pavCost=p=>capN(p.c*p.k**(S.expo.pav[p.id]||0)*.8**Math.min(tp('cur'),20)*seaM('pav')*(nd('o3')?.5:1)*dyE('pav',1));
 function buyPav(p){const c=pavCost(p);if(c>S.expo.fame)return false;S.expo.fame-=c;S.expo.pav[p.id]=(S.expo.pav[p.id]||0)+1;return true}
 const tradW=()=>(msX(12)?.5:.25)*(msTh(60)?1.5:1)*(nd('x3')?1.5:1);
 function tp(id){const E=S.expo;let v=(E.trad[id]||0)*tradW();if(E.master)for(const t of E.master.t)if(t.id===id)v+=GRADE[t.g].v;return Math.min(v,200)}
 const expoOpen=()=>S.expo.n>0||(S.tower.best||0)>=1e18;
-const fameM=()=>1.5**ctier('k6')*(nd('o0')?2:1)*(nd('x4')?3:1)*(trD('g1')?3:1)*(trD('g5')?2:1)*(1+.2*cxF('fame'))*(trTier(0)?2:1)*(trTier(2)?3:1)*(nd('n2')?2:1)*1.5**Math.min(nl('q0'),200)*achM('f')*(dsp('station')===2?1.2:1)*(1+tp('fame'))*thM('fame')*seaM('fame')*(1+.1*S.expo.n);
+const fameM=()=>1.5**ctier('k6')*dyE('fame',1)*(nd('o0')?2:1)*(nd('x4')?3:1)*(trD('g1')?3:1)*(trD('g5')?2:1)*(1+.2*cxF('fame'))*(trTier(0)?2:1)*(trTier(2)?3:1)*(nd('n2')?2:1)*1.5**Math.min(nl('q0'),200)*achM('f')*(dsp('station')===2?1.2:1)*(1+tp('fame'))*thM('fame')*seaM('fame')*(1+.1*S.expo.n);
 const fameGain=()=>{const b=S.tower.bellsTotal;return b<1e21?0:capN(Math.floor((Math.log10(b)-20)**2*fameM()))};
 const fameBellM=()=>(1+S.expo.fameT)**1.5;
 function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -1608,6 +1701,19 @@ const ORE_UP=[
 const MT_RES=['태엽 획득량','보석 획득량','주민 성장 속도','은화 획득량','종 획득량','모든 회전 속도','별 획득량','탑 톱니 회전 속도','시간 결정 획득량','모든 수리력'];
 const mtCnt=k=>S.rep?Math.max(0,Math.floor((S.rep.best-1-k)/10)+1):0;
 const mtB=k=>1+.05*Math.min(mtCnt(k),2000);
+/* 기계 도감 2권 (v29.4): 수리한 기계 총 대수에 따라 쌓이는 이정표 */
+const mtTot=()=>MACH.reduce((a,m,k)=>a+mtCnt(k),0);
+const MT2=[
+ {at:50,  d:'모든 수리력 ×2'},
+ {at:100, d:'은화 획득량 ×10'},
+ {at:200, d:'원석 광휘 ×10'},
+ {at:350, d:'골동 부품 강화 비용 ×0.5'},
+ {at:500, d:'복잡 기구 품질 +5'},
+ {at:650, d:'골동 부품 자동 봉헌을 100단계 부품 없이도 켤 수 있음, 종 획득량 ×10'},
+ {at:780, d:'모든 수리력 ×10'},
+ {at:865, d:'은화·원석 광휘 ×100'},
+];
+const mt2=i=>mtTot()>=MT2[i].at;
 const ORE_MS=[
  {at:10,d:'광휘 ×2'},
  {at:20,d:'은화 획득량 ×3'},
@@ -1622,16 +1728,16 @@ const repOpen=()=>S.city.pop>=1e10||S.rep.lvl>0;
 const oreOpen=()=>S.rep.best>=100;
 const rp=S_=>S.rep;
 function rl(id){const r=S.rep.rel[id];if(!r)return 0;return (r.lv+30*r.sac)*(1+.25*r.sac)*oreRes()}
-const relCost=p=>{const r=S.rep.rel[p.id]||{lv:0,sac:0};return capN(p.c*1e3**r.sac*1.3**r.lv)};
+const relCost=p=>{const r=S.rep.rel[p.id]||{lv:0,sac:0};return capN(p.c*1e3**r.sac*1.3**r.lv*(mt2(3)?.5:1))};
 const relOpen=p=>S.rep.best>=p.at;
 function toolOpen(i){return S.rep.best>=TOOLS[i].at}
 const mast=i=>S.rep.ore.mast[i]||0;
 function toolIv(i){return Math.max(.1,TOOLS[i].iv*.9**S.rep.t[i].s*.95**mast(i)/(1+.02*rl('r3')))}
-function hitL(i){return .75*Math.sqrt(Math.max(0,lastRate))+TOOLS[i].dL+.2*S.rep.t[i].d+.5*mast(i)+.5*Math.log10(1+rl('r1'))+S.rep.ore.u.dmg+(nd('s7')?3:0)+nl('m2')+2*tp('rep')+pav('rep')+Math.log10(mtB(9))+(msO(30)?3:0)+(trD('h5')?5:0)}
+function hitL(i){return .75*Math.sqrt(Math.max(0,lastRate))+TOOLS[i].dL+.2*S.rep.t[i].d+.5*mast(i)+.5*Math.log10(1+rl('r1'))+S.rep.ore.u.dmg+(nd('s7')?3:0)+nl('m2')+2*tp('rep')+pav('rep')+Math.log10(mtB(9))+(mt2(0)?Math.log10(2):0)+(mt2(6)?1:0)+(msO(30)?3:0)+(trD('h5')?5:0)}
 function mgL(i){return (nd('s2')?2:1)*.002*Math.sqrt(1+S.rep.t[i].m)*(1+.05*rl('r11'))*1.1**mast(i)}
 const hpL=n=>2+.5*n+.003*n*n;
 const upkeep=()=>S.rep.best>=1?.02*silverGain(S.rep.best):0;
-const silverGain=n=>capN((trD('g5')?1e4:1)*10**Math.min(cxF('silver'),50)*(trD('h5')?100:1)*(nd('n5')?1e3:1)*(nd('o4')?1e3:1)*(msO(20)?3:1)*(dsp('market')===2?3:1)*(cev()===5?3:1)*mtB(3)*(bpOn('rep2')?5:1)*(synOn('s9')?3:1)*5**tp('rep')*thM('rep')*seaM('rep')*3**pav('rep')*(nd('z8')?3:1)*(nd('s3')?10:1)*1.12**n*(1+.1*rl('r2'))*2**S.rep.ore.u.silver);
+const silverGain=n=>capN((trD('g5')?1e4:1)*10**Math.min(cxF('silver'),50)*(trD('h5')?100:1)*(nd('n5')?1e3:1)*(nd('o4')?1e3:1)*(mt2(1)?10:1)*(mt2(7)?100:1)*10**dyE('silv',0)*(msO(20)?3:1)*(dsp('market')===2?3:1)*(cev()===5?3:1)*mtB(3)*(bpOn('rep2')?5:1)*(synOn('s9')?3:1)*5**tp('rep')*thM('rep')*seaM('rep')*3**pav('rep')*(nd('z8')?3:1)*(nd('s3')?10:1)*1.12**n*(1+.1*rl('r2'))*2**S.rep.ore.u.silver);
 const TU=[['s','속도',5,3],['d','수리력',3,2.2],['m','배율',10,2.6]];
 const toolCost=(i,k)=>{const q=TU.find(x=>x[0]===k);return capN(q[2]*q[3]**S.rep.t[i][k]*(i+1)**2)};
 function buyTool(i,k){if(!toolOpen(i))return false;const c=toolCost(i,k);if(c>S.rep.silver)return false;S.rep.silver-=c;S.rep.t[i][k]++;return true}
@@ -1649,7 +1755,7 @@ function spawnOre(){const O=S.rep.ore;if(!oreOpen())return false;const k=oreSlot
   const lv=1+O.u.spawn;S.rep.silver-=c;O.g[k]=O.g[k]===lv?lv+1:lv;O.best=Math.max(O.best,O.g[k]);O.top=Math.max(O.top||0,O.best);O.heat+=1;mergeOre();return true}
 function mergeOre(){const O=S.rep.ore;let any=true,n=0;while(any&&n++<200){any=false;const seen={};
   for(let k=0;k<O.g.length;k++){const v=O.g[k];if(!v)continue;if(seen[v]!==undefined){const a=seen[v];O.g[a]=v+1;O.g[k]=0;O.best=Math.max(O.best,v+1);O.top=Math.max(O.top||0,O.best);O.pop=a;any=true;break}seen[v]=k}}}
-const lusRate=()=>{let s=0;for(const v of S.rep.ore.g)if(v)s+=3**Math.min(v,600);return capN(s*(nd('n5')?1e3:1)*(nd('o4')?1e3:1)*(msO(10)?2:1)*(nd('s4')?10:1)*(1+.1*rl('r12'))*Math.sqrt(1+S.rep.ore.polT))};
+const lusRate=()=>{let s=0;for(const v of S.rep.ore.g)if(v)s+=3**Math.min(v,600);return capN(s*(nd('n5')?1e3:1)*(nd('o4')?1e3:1)*(mt2(2)?10:1)*(mt2(7)?100:1)*10**dyE('silv',0)*(msO(10)?2:1)*(nd('s4')?10:1)*(1+.1*rl('r12'))*Math.sqrt(1+S.rep.ore.polT))};
 const polGain=()=>S.rep.ore.best<18?0:capN(Math.floor(1.4**(S.rep.ore.best-18)));
 const mastCost=i=>capN(3**mast(i));
 function buyMast(i){const c=mastCost(i);if(c>S.rep.ore.pol)return false;S.rep.ore.pol-=c;S.rep.ore.mast[i]=mast(i)+1;return true}
@@ -1820,6 +1926,8 @@ const ACH=[
  {id:'k6a',   n:'텅 빈 전시장',   d:'상위 의뢰 「텅 빈 전시장」 1단계', r:'yield', v:3,   t:()=>ctier('k6')>0},
  {id:'kAll6', n:'모든 의뢰서',   d:'상위 의뢰 6종을 모두 1단계 이상', r:'mesh',  v:2,   t:()=>['k1','k2','k3','k4','k5','k6'].every(id=>ctier(id)>0)},
  {id:'spec3', n:'특색 있는 도시', d:'구역 특화 3곳',                r:'yield', v:3,   t:()=>Object.keys(S.city.spec).filter(k=>dsp(k)).length>=3},
+ {id:'mt2a',  n:'두 번째 도감',  d:'기계 도감 2권 첫 이정표 (기계 50대)', r:'speed', v:3, t:()=>mt2(0)},
+ {id:'mt2z',  n:'도감 2권 완성', d:'기계 도감 2권 이정표 모두 달성', r:'yield', v:5, t:()=>mt2(MT2.length-1)},
  {id:'mt10',  n:'도감 완성',     d:'열 종류 기계를 모두 10대 이상 수리', r:'speed', v:3, t:()=>MACH.every((m,k)=>mtCnt(k)>=10)},
  {id:'ore40', n:'전설의 원석',   d:'원석 40단계 기록',              r:'yield', v:5,   t:()=>msO(40)},
  {id:'pav25', n:'명소가 된 전시관',d:'전시관 하나 25단계',           r:'speed', v:2,   t:()=>Object.values(S.expo.pav).some(v=>v>=25)},
@@ -1867,6 +1975,11 @@ const ACH=[
  {id:'sky1',n:'은하단에 닿다',d:'은하단의 별 하나 잇기',r:'yield',v:5,t:()=>conCnt('q')>=1},
  {id:'sky2',n:'태초에 닿다',d:'태초의 빛의 별 하나 잇기',r:'yield',v:5,t:()=>conCnt('o')>=1},
  {id:'sky3',n:'태초의 빛',d:'태초의 빛의 별 6개 모두 잇기',r:'yield',v:5,t:()=>conCnt('o')>=6},
+ {id:'dy1', n:'점화',           d:'다이슨 스웜 첫 점화',            r:'yield',v:5,t:()=>S.dy.n>=1},
+ {id:'dys1',n:'첫 고리',         d:'껍질 1겹 두르기',               r:'speed',v:3,t:()=>S.dy.sh>=1},
+ {id:'dys4',n:'소행성대까지',     d:'껍질 4겹 두르기',               r:'yield',v:5,t:()=>S.dy.sh>=4},
+ {id:'dys8',n:'마트료시카 브레인',d:'껍질 8겹 두르기',               r:'yield',v:10,t:()=>S.dy.sh>=8},
+ {id:'dy10',n:'꺼지지 않는 태양', d:'점화 10회',                     r:'speed',v:3,t:()=>S.dy.n>=10},
  {id:'sky4',n:'물질의 승리',d:'물질의 승리의 별 6개 모두 잇기',r:'yield',v:5,t:()=>conCnt('x')>=6},
  {id:'pre1',n:'설계 서재',d:'설계도 프리셋 저장',r:'mesh',v:0.25,t:()=>S.bp.pre&&S.bp.pre.some(p=>p&&p.length)},
  {id:'gm1',n:'거장의 길',d:'거장 시험 하나 통과',r:'yield',v:10,t:()=>TRIALS.some(x=>x.t===3&&trD(x.id))},
@@ -1924,16 +2037,16 @@ const KEY='clockwork-idle-v1';
 function fresh(){return{numV:3,brass:LZ,run:LZ,all:LZ,runT:0,gears:G.map((_,i)=>({lv:i?0:1,ratio:0,prog:0,mesh:LZ,revs:0})),up:{},
   springs:0,springsTotal:0,prest:0,pu:{capital:0,warm:0,inertia:0,autoBuy:0,polish:0,autoUp:0,autoRatio:0,interest:0,deep:0,overclock:0,temper:0},
   jewels:0,jewelsTotal:0,moves:0,jw:{bearing:0,preset:0,amp:0,meshStart:0,keepAuto:0,jewelEff:0,deepMesh:0,chalPow:0,springFloor:0,starJewel:0,starLink:0,timeCut:0},chal:null,cdone:{},
-  hist:{t:0,p:[]},cq:{t:0,seq:0,q:[],done:0,trust:0,shard:0,drop:0,c:{eter:0,tower:0,floor:0,astro:0}},trial:null,trGoal:0,trDone:{},trBest:{},trT:0,cx:{t:0,seq:0,found:0,dust:0,items:[],eq:[]},xl:{spr:LZ,jw:LZ,st:LZ,cr:LZ},dec:{spr:0,jw:0,st:0,cr:0},stars:0,starsTotal:0,astros:0,plm:{},planets:{},plOrder:[],opt:{autoSpring:0,autoMove:0,autoAstro:0,autoEter:0,autoPu:1,autoJw:1,autoSe:1,autoFloor:1,autoCity:1,autoCr:1,autoBp:1,autoTower:0,autoCon:0,autoPick:0,autoExpo:0,autoEquip:1,autoPav:1,autoSac:1,autoSalv:0,autoTg:0,autoChal:0,autoSpawn:1,autoTool:1,autoRelic:1,autoOreUp:1},ctier:{},
+  hist:{t:0,p:[]},cq:{t:0,seq:0,q:[],done:0,trust:0,shard:0,drop:0,c:{eter:0,tower:0,floor:0,astro:0}},trial:null,trGoal:0,trDone:{},trBest:{},trT:0,cx:{t:0,seq:0,found:0,dust:0,items:[],eq:[]},xl:{spr:LZ,jw:LZ,st:LZ,cr:LZ},dec:{spr:0,jw:0,st:0,cr:0},stars:0,starsTotal:0,astros:0,plm:{},planets:{},plOrder:[],opt:{autoSpring:0,autoMove:0,autoAstro:0,autoEter:0,autoPu:1,autoJw:1,autoSe:1,autoFloor:1,autoCity:1,autoCr:1,autoBp:1,autoTower:0,autoCon:0,autoPick:0,autoExpo:0,autoEquip:1,autoPav:1,autoSac:1,autoSalv:0,autoTg:0,autoChal:0,autoSpawn:1,autoTool:1,autoRelic:1,autoOreUp:1,autoShell:1,autoDyPick:1,autoIg:0},ctier:{},
   crystals:0,crystalsTotal:0,eters:0,se:{lens:0,globe:0,sidereal:0,spectro:0,sextant:0,chart:0,refl:0,orrery:0,chrono:0,dome:0},cr:{slot:0,starAmp:0,startStars:0,crysPow:0,jewelStart:0,gravity:0,crysAmp:0,chalLens:0,autoEter:0},bp:{own:{},slots:[]},comet:{t:0,on:0,seen:0},
   city:{pop:0,spec:{},d:{plaza:0,market:0,school:0,foundry:0,obs:0,station:0}},
   rep:{lvl:0,best:0,dmg:LZ,silver:0,multL:0,t:TOOLS.map(()=>({s:0,d:0,m:0})),cd:TOOLS.map(()=>0),hit:TOOLS.map(()=>0),rel:{},
     ore:{g:[],heat:0,lus:0,lusT:0,best:0,top:0,pop:-1,u:{spawn:0,grid:0,cool:0,silver:0,dmg:0},pol:0,polT:0,polN:0,mast:[0,0,0,0,0]}},
-  sea:{dT:0,next:0,voy:0,pick:{}},expo:{n:0,fame:0,fameT:0,pav:{},trad:{},hist:[],master:null,cand:[],th:null,thOpt:[],thC:{},seed:Math.floor(Math.random()*1e9)},
+  sea:{dT:0,next:0,voy:0,pick:{}},dy:{n:0,c:0,cT:0,PL:0,DL:-1e300,H:0,sh:0,pk:{},last:0},expo:{n:0,fame:0,fameT:0,pav:{},trad:{},hist:[],master:null,cand:[],th:null,thOpt:[],thC:{},seed:Math.floor(Math.random()*1e9)},
   tower:{best:0,bells:0,bellsTotal:0,towers:0,startCr:0,fl:0,flMax:0,mod:[0,0,0,0,0,0,0,0,0,0],g:[0,0,0,0,0],r:[0,0,0,0,0],nodes:{}},
   ach:{},last:Date.now(),buy:'1',sci:false,nota:'',peak:0,stat:{play:0,bestRate:LZ,bestRunL:LZ,fastSpring:0,offline:0}}}
 let S=fresh();
-function merge(o){seaCache=null;const f=fresh();if(!o||typeof o!=='object')return f;
+function merge(o){seaCache=null;dyCache=null;const f=fresh();if(!o||typeof o!=='object')return f;
   for(const k in f){if(o[k]===undefined)continue;
     if(k==='gears'&&Array.isArray(o.gears))f.gears=f.gears.map((g,i)=>Object.assign(g,o.gears[i]||{}));
     else if(['trDone','trBest','xl','dec','up','pu','jw','ach','cdone','planets','plm','opt','comet','cr','stat','ctier','se'].includes(k)&&typeof o[k]==='object')Object.assign(f[k],o[k]);
@@ -1945,6 +2058,8 @@ function merge(o){seaCache=null;const f=fresh();if(!o||typeof o!=='object')retur
     else if(k==='hist'&&o.hist){f.hist.t=+o.hist.t||0;f.hist.p=Array.isArray(o.hist.p)?o.hist.p.filter(p=>Array.isArray(p)&&isFinite(p[0])&&isFinite(p[1])).slice(-400):[]}
     else if(k==='cq'&&o.cq){const C=f.cq,Q=o.cq;for(const q of ['t','seq','done','trust','shard','drop','warped'])if(isFinite(+Q[q]))C[q]=+Q[q];C.q=Array.isArray(Q.q)?Q.q.filter(q=>q&&CQ.some(c=>c.k===q.k)):[];Object.assign(C.c,Q.c)}
     else if(k==='trial'){f.trial=typeof o.trial==='string'?o.trial:null}
+    else if(k==='dy'&&o.dy&&typeof o.dy==='object'){const A=f.dy,Q=o.dy;for(const q of ['n','c','cT','PL','H','sh','last'])if(isFinite(+Q[q])&&+Q[q]>=0)A[q]=+Q[q];if(isFinite(+Q.DL))A.DL=+Q.DL;A.sh=Math.min(Math.floor(A.sh),8);A.n=Math.floor(A.n);
+      if(Q.pk)for(const k in Q.pk)if(+k>=0&&+k<8&&Array.isArray(Q.pk[k]))A.pk[k]=[...new Set(Q.pk[k].filter(j=>j===0||j===1||j===2))];dyCache=null}
     else if(k==='sea'&&o.sea){const A=f.sea,Q=o.sea;for(const q of ['dT','next','voy'])if(isFinite(+Q[q])&&+Q[q]>=0)A[q]=+Q[q];A.next=Math.min(Math.floor(A.next),SEA_N);
       if(Q.pick)for(const pi in Q.pick)if(PORTS[pi]&&Array.isArray(Q.pick[pi]))A.pick[pi]=[...new Set(Q.pick[pi].filter(j=>j===0||j===1||j===2))].slice(0,3);seaCache=null}
     else if(k==='expo'&&o.expo){const E=f.expo,Q=o.expo;for(const q of ['n','fame','fameT','seed','hb'])if(isFinite(+Q[q]))E[q]=+Q[q];E.hist=Array.isArray(Q.hist)?Q.hist.filter(h=>h&&Array.isArray(h.t)).slice(-60):[];E.pav=Object.assign({},Q.pav);E.trad=Object.assign({},Q.trad);
@@ -1993,7 +2108,7 @@ function springS(){return inC('c6')?1:1+.15*Math.log10(1+springPer()*S.springsTo
 const starY=()=>(1+S.starsTotal)**1.2, starS=()=>1+.5*Math.log10(1+S.starsTotal);
 /* 전체 생산 배율 (log10) */
 function globalY(){let L=lg(AM.yield)+lg(UM.all)+UM.xL+lg(springY())+lg(jewelY())+lg(starY())+lg(crystalY());
-  if(bpOn('big'))L+=1;L+=lg(tm(0))+lg(bellY())+(nd('root')?1:0)+(nd('a1')?2:0)+(nd('a3')?4:0)+(nd('a5')?10:0)+(nd('z2')?10:0)+(nd('s1')?1000:0)+100*nl('m0')+(nd('m5')?1e4:0)+(nd('o5')?1e4:0)+100*tp('gear')+thL()+seaL()+50*pav('gear')+100*Math.log10(1+S.expo.fameT);L+=S.se.spectro*lg(3)+(msA(5)?lg(3):0)+(msA(600)?1:0)+(msA(6000)?2:0);
+  if(bpOn('big'))L+=1;L+=lg(tm(0))+lg(bellY())+(nd('root')?1:0)+(nd('a1')?2:0)+(nd('a3')?4:0)+(nd('a5')?10:0)+(nd('z2')?10:0)+(nd('s1')?1000:0)+100*nl('m0')+(nd('m5')?1e4:0)+(nd('o5')?1e4:0)+dyE('prod',0)+100*tp('gear')+thL()+seaL()+50*pav('gear')+100*Math.log10(1+S.expo.fameT);L+=S.se.spectro*lg(3)+(msA(5)?lg(3):0)+(msA(600)?1:0)+(msA(6000)?2:0);
   if(synOn('s1'))L+=lg(4);if(synOn('s6'))L+=4;if(msF(90))L+=50;if(msPM(600))L+=100;L+=xsBonusL()+5*Math.min(S.se.dome||0,5)+(msM(10000)?20:0)+(trD('e2')?30:0)+(trD('e5')?100:0)+(trD('h6')?1000:0)+30*cxF('prod')+(nd('n7')?5000:0)+(trD('g6')?1e4:0)+(nd('q4')?1e4:0)+oreShowL();if(dsp('market')===1)L+=30;if(msO(50))L+=100;if(cev()===1)L+=20;L+=.1*Math.min(pmSum(),600);if(tmod(0,0)===1)L+=20;if(synOn('s3')&&S.comet.on)L+=lg(20);L+=tierMultL();
   if(msS(1e3))L+=1;L+=ctier('c8')*lg(5);
   if(pl('jupiter'))L+=1.5*lg(own());if(pl('mars'))L+=totTiers()*lg(S.jw.chalPow?2:1.5);
@@ -2022,7 +2137,7 @@ function speedOf(i,gs,mf){const L=speedL(i,gs===undefined?undefined:lg(gs),mf);r
 function addBrass(L){S.brass=la(S.brass,L);S.run=la(S.run,L);S.all=la(S.all,L)}
 function step(dt){
   if(!isFinite(S.brass)||!isFinite(S.run)||!isFinite(S.all)){S=merge(JSON.parse(JSON.stringify(S)));recalcAM()}
-  S.runT+=dt;S.stat.play+=dt;
+  S.runT+=dt;S.stat.play+=dt;dyTick(dt);
   if(nd('z0')){const r=passRate()*dt;
     const lr=lg(r);{const g=springGainL();if(g>=0)grantL('spr',g+lr)}
     if(nd('z1')){const g=jewelGainL();if(g>=0)grantL('jw',g+lr)}
@@ -2138,7 +2253,7 @@ function eternity(quiet){const gL=crysGainL();if(!canReset('cr',gL))return;fastR
   S.gears.forEach(g=>g.mesh=LZ);windReset(0);
   if(!SIMMODE&&!quiet)toast(`영겁을 감았습니다. 시간 결정 <b>${fmtL(gL)}개</b>를 얻었습니다.`);after(quiet)}
 const bellCr=()=>S.crystalsTotal-(S.tower.startCr||0);
-function bellM(){return (trD('g2')?100:1)*trustBell()*10**Math.min(.3*cxF('bell'),30)*(trD('h4')?5:1)*(trTier(2)?10:1)*(nd('n4')?1e3:1)*10**Math.min(nl('q2'),100)*(msO(40)?2:1)*mtB(4)*(dsp('foundry')===1?1.5:1)*(cev()===4?1.5:1)*1.5**ctier('k3')*(bpOn('bell2')?2:1)*(synOn('s7')?2:1)*(msPM(300)?2:1)*(tmod(4,0)===2?1.5:1)*(tmod(4,1)===2?2:1)*(msF(20)?1.5:1)*(msF(70)?2:1)*(msF(100)?10:1)*fameBellM()*3**tp('bell')*thM('bell')*seaM('bell')*2**pav('bell')*(msX(5)?10:1)*(nd('z5')?2:1)*(nd('z12')?3:1)*(nd('s0')?5:1)*(nd('s9')?10:1)*1.5**Math.min(nl('m1'),1500)*(nd('m6')?100:1)*(1+.05*rl('r8'))*(1+.25*cd('foundry')*popL())*(msP(1e5)?2:1)*3*(msT(100)?2:1)*(nd('d5')?2:1)*achM('b')*1.3**S.tower.fl}
+function bellM(){return 10**dyBellL()*(trD('g2')?100:1)*(mt2(5)?10:1)*trustBell()*10**Math.min(.3*cxF('bell'),30)*(trD('h4')?5:1)*(trTier(2)?10:1)*(nd('n4')?1e3:1)*10**Math.min(nl('q2'),100)*(msO(40)?2:1)*mtB(4)*(dsp('foundry')===1?1.5:1)*(cev()===4?1.5:1)*1.5**ctier('k3')*(bpOn('bell2')?2:1)*(synOn('s7')?2:1)*(msPM(300)?2:1)*(tmod(4,0)===2?1.5:1)*(tmod(4,1)===2?2:1)*(msF(20)?1.5:1)*(msF(70)?2:1)*(msF(100)?10:1)*fameBellM()*3**tp('bell')*thM('bell')*seaM('bell')*2**pav('bell')*(msX(5)?10:1)*(nd('z5')?2:1)*(nd('z12')?3:1)*(nd('s0')?5:1)*(nd('s9')?10:1)*1.5**Math.min(nl('m1'),1500)*(nd('m6')?100:1)*(1+.05*rl('r8'))*(1+.25*cd('foundry')*popL())*(msP(1e5)?2:1)*3*(msT(100)?2:1)*(nd('d5')?2:1)*achM('b')*1.3**S.tower.fl}
 const bellGain=()=>{if(bellCr()<100)return 0;const g=(Math.log10(bellCr()/100)+1)**2*bellM();return capN(Math.floor(S.trial==='h4'?Math.sqrt(g):g))};
 const bellNeedL=t=>2+Math.max(0,Math.sqrt(t/bellM())-1);
 const floorCost=()=>310+50*S.tower.fl+4*S.tower.fl**2-(msP(1e3)?50:0)-(msF(30)?20:0)-(dsp('foundry')===2?10:0)-(trD('h1')?50:0);
@@ -2160,7 +2275,7 @@ function buyFloor(){if(tr2('h1','g2'))return false;const c=floorCost();if(!S.tow
 function buyDist(p){if(!cityOpen()||(p.max&&cd(p.id)>=p.max))return false;const c=distCost(p);if(c>S.brass)return false;S.brass=ls(S.brass,c);S.city.d[p.id]=cd(p.id)+1;return true}
 const tgCost=i=>Math.round(TG[i].c*2.5**S.tower.g[i]);
 function buyTg(i){const c=tgCost(i);if(c>S.tower.bells)return;S.tower.bells-=c;S.tower.g[i]++}
-const conCost=n=>capN(n.c*(n.k||1)**nl(n.id)*.7**ctier('k5')),conMaxed=n=>n.k?(n.max?nl(n.id)>=n.max:false):nd(n.id);
+const conCost=n=>capN(n.c*(n.k||1)**nl(n.id)*.7**ctier('k5')*dyE('con',1)*(n.pg==='q'?dyE('qc',1):1)),conMaxed=n=>n.k?(n.max?nl(n.id)>=n.max:false):nd(n.id);
 const conExOk=n=>!n.ex||S.expo.n>=n.ex;
 const conAvail=n=>!conMaxed(n)&&(!n.p||nd(n.p))&&conExOk(n)&&CPAGES.find(q=>q.id===n.pg).ok();
 function buyCon(n){const c=conCost(n);if(!conAvail(n)||c>S.tower.bells)return;S.tower.bells-=c;S.tower.nodes[n.id]=nl(n.id)+1;if(!SIMMODE)toast(n.k?`<b>${n.n}</b> ${nl(n.id)}단계`:`<b>${n.n}</b>을(를) 성좌도에 이었습니다.`);checkAch();if(!SIMMODE){conSig='';update()}}
@@ -2192,6 +2307,7 @@ function autoStuff(){
   if(msX(3)&&S.opt.autoPav)autoShop(PAV,p=>S.expo.pav[p.id]||0,pavCost,()=>S.expo.fame,buyPav);
   if((S.expo.thOpt||[]).length&&S.opt.autoTheme&&msTh(10))autoTheme();
   if(S.opt.autoSea&&msSea(9))autoSea();
+  if(dyOpen()){if(S.opt.autoShell&&msDy(3))while(buyShell());if(S.opt.autoDyPick&&msDy(5))autoDyPick();if(S.opt.autoIg&&(msDy(15)||dyE('autoIg',0))&&!S.chal&&!S.trial){const g=igGain();if(g>=1)ignite()}}
   if(S.expo.cand.length&&S.opt.autoPick&&msX(3)){let bi=0,bv=-1;S.expo.cand.forEach((c,i)=>{const v=c.t.reduce((a,t)=>a+GRADE[t.g].v,0);if(v>bv){bv=v;bi=i}});pickCand(bi)}
   if((msT(300)||msX(2))&&S.opt.autoCon){let k=0;while(k++<50){let best=null,bc=Infinity;for(const n of CON)if(conAvail(n)){const c=conCost(n);if(c<bc){bc=c;best=n}}if(!best||bc>S.tower.bells)break;const q=SIMMODE;SIMMODE=true;buyCon(best);SIMMODE=q;conSig=''}}
   if(repOpen())autoRep();
@@ -2254,8 +2370,8 @@ const $=id=>document.getElementById(id);
 function toast(html){if(SIMMODE)return;const t=document.createElement('div');t.className='toast';t.innerHTML=html;$('toasts').appendChild(t);setTimeout(()=>t.remove(),4200);
   const all=$('toasts').children;if(all.length>4)all[0].remove()}
 let tab='gears',achDirty=0;
-const TABS=['over','gears','upg','spring','chal','move','astro','eter','tower','con','city','expo','sea','trial','rep','ach','help','log','opt'];
-const GROUPS=[{id:'over',n:'한눈에',t:['over']},{id:'ws',n:'공방',t:['gears','upg','spring','chal']},{id:'sky',n:'하늘',t:['move','astro','eter']},{id:'tw',n:'탑과 도시',t:['tower','con','city']},{id:'art',n:'장인',t:['rep','expo','sea','trial']},{id:'rec',n:'기록',t:['ach','help','log','opt']}];
+const TABS=['over','gears','upg','spring','chal','move','astro','eter','dy','tower','con','city','expo','sea','trial','rep','ach','help','log','opt'];
+const GROUPS=[{id:'over',n:'한눈에',t:['over']},{id:'ws',n:'공방',t:['gears','upg','spring','chal']},{id:'sky',n:'하늘',t:['move','astro','eter','dy']},{id:'tw',n:'탑과 도시',t:['tower','con','city']},{id:'art',n:'장인',t:['rep','expo','sea','trial']},{id:'rec',n:'기록',t:['ach','help','log','opt']}];
 const grpOf=t=>GROUPS.find(g=>g.t.includes(t));const lastSub={};
 function buildGroups(){$('gtabs').innerHTML=GROUPS.map(g=>`<button class="gtab" role="tab" data-g="${g.id}" aria-selected="false">${g.n}<span class="dot" hidden></span></button>`).join('');
   $('gtabs').querySelectorAll('.gtab').forEach(b=>b.onclick=()=>{const g=GROUPS.find(x=>x.id===b.dataset.g);const vis=g.t.filter(t=>{const e=document.querySelector(`.tab[data-t="${t}"]`);return e&&!e.hidden});setTab(lastSub[g.id]&&vis.includes(lastSub[g.id])?lastSub[g.id]:vis[0]||g.t[0])})}
@@ -2264,7 +2380,7 @@ function refreshGroups(){const cur=grpOf(tab);document.querySelectorAll('.tab').
   $('gtabs').querySelectorAll('.gtab').forEach(b=>{const g=GROUPS.find(x=>x.id===b.dataset.g),tabs=g.t.map(t=>document.querySelector(`.tab[data-t="${t}"]`)).filter(Boolean);
     b.hidden=tabs.every(e=>e.hidden);b.setAttribute('aria-selected',g===cur);b.querySelector('.dot').hidden=g===cur||!tabs.some(e=>!e.hidden&&[...e.querySelectorAll('.dot')].some(d=>!d.hidden))})}
 function setTab(t){tab=t;const gg=grpOf(t);if(gg)lastSub[gg.id]=t;document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x.dataset.t===t));
-  TABS.forEach(p=>$('p-'+p).hidden=p!==t);if(t==='astro')sizeOrr();if(t==='tower')sizeTcv();if(t==='city')sizeCcv();if(t==='expo')sizeXcv();if(t==='rep'){sizeRcv();repSig='';relSig='';oreSig=''}if(t==='con')conSig='';if(t==='ach'&&achDirty){achDirty=0;buildAch()}update()}
+  TABS.forEach(p=>$('p-'+p).hidden=p!==t);if(t==='astro')sizeOrr();if(t==='tower')sizeTcv();if(t==='city')sizeCcv();if(t==='expo')sizeXcv();if(t==='dy')sizeDcv();if(t==='rep'){sizeRcv();repSig='';relSig='';oreSig=''}if(t==='con')conSig='';if(t==='ach'&&achDirty){achDirty=0;buildAch()}update()}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.t));buildGroups();
 
 const rows=[];
@@ -2350,6 +2466,19 @@ function refreshOre(){const O=S.rep.ore;while(O.g.length<oreN())O.g.push(0);cons
   const G2=$('oreGrid');G2.style.gridTemplateColumns=`repeat(${oreCols()},minmax(0,1fr))`;
   G2.innerHTML=O.g.slice(0,oreN()).map((v,k)=>v?`<div class="ocell${k===O.pop?' pop':''}" style="background:${oreColor(v)}">${v}</div>`:'<div class="ocell empty">빈 칸</div>').join('');O.pop=-1}
 function buildPav(){pavRows=shopRows('pavList',PAV,p=>{if(buyPav(p))checkAch()},'expo')}
+let dySig='';
+function refreshDy(){if(tab!=='dy')return;const D=S.dy,k=dyK();
+  $('dyC').textContent=fmt(D.c);$('dyCT').textContent=fmt(D.cT);$('dyP').textContent=k?fmtL(D.PL):'껍질을 먼저 두르세요';$('dyR').textContent=k?fmtL(dyRateL())+'/초 · 누적 '+(D.DL>-1e299?fmtL(D.DL):'0'):'—';
+  $('dyBell').textContent='×'+fmtL(dyBellL());$('dyN').textContent=fmt(D.n);
+  const cap=dyCapL(k);setProg('pg-dyheat',k?Math.min(1,D.PL/cap):0,!k?'첫 껍질을 두르면 패널이 늘어나기 시작합니다':D.PL>=cap-1e-9?`폐열 한도에 닿았습니다 · 다음 껍질을 두르면 한도 ×8`:`폐열 한도까지 ${Math.floor(D.PL/cap*100)}% · 2배마다 ${fmtT(dyTd())}`);
+  const c=dyShellCost();$('shellLbl').textContent=k<8?`${DY_SH[k].n} 두르기`:'껍질 8겹 완성';$('shellCost').textContent=k<8?'연산 '+fmt(c):'—';$('shellBtn').disabled=k>=8||c>D.c;
+  const g=igGain();$('igGainN').textContent=g>=1?'연산 +'+fmt(g):!dySat()?'폐열 한도에 닿으면 점화 가능':'이번 회차 종 1e121 필요';$('igBtn').disabled=g<1;
+  const pend=dyPend(),sig=JSON.stringify([D.pk,k,pend,D.n])+nota();if(sig===dySig)return;dySig=sig;
+  $('dyPendCard').hidden=pend<0;const L=$('dyOpts');L.innerHTML='';
+  if(pend>=0){const t=D.pk[pend]||[];[0,1,2].filter(j=>!t.includes(j)).forEach(j=>{const b=document.createElement('button');b.className='planet cand';const o=DY_SH[pend].o[j];
+    b.innerHTML=`<span class="t">${DY_SH[pend].n}<span>영구</span></span><span class="d">${DY_TXT[o[0]](o[1])}</span>`;b.onclick=()=>{dyPick(pend,j);dySig='';update()};L.appendChild(b)})}
+  $('dyShells').innerHTML=DY_SH.map((s,i)=>{const t=D.pk[i]||[];return`<div class="${i<k?'on':''}"><b>${i+1}겹 · ${DY_T[i]} K · 효율 ${(dyEta(i+1)*100).toFixed(i>5?2:i>3?1:0)}%</b><span><strong>${s.n}</strong> · ${s.w}<br>${s.o.map((o,j)=>t.includes(j)?`<b>${DY_TXT[o[0]](o[1])}</b>`:DY_TXT[o[0]](o[1])).join(' · ')}</span></div>`}).join('');
+  buildMs('dyMs',DY_MS,at=>msDy(at),a=>'점화 '+a+'회')}
 function refreshSea(){const A=S.sea;if(tab!=='sea')return;
   const k=seaPend(),sig=JSON.stringify([A.dT,A.next,A.pick,A.voy,k])+nota();
   const nx=A.next<SEA_N?seaThr(A.next):0;
@@ -2576,6 +2705,7 @@ function update(){
   const ec=$('crysChip');ec.hidden=!S.crystalsTotal;ec.textContent=`결정 ${fmtL(tL('cr'))}`;
   const cg=crystalGain();$('eterTab').hidden=nPl()<9&&!S.eters;$('eterDot').hidden=cg<1;
   $('trialTab').hidden=!trOpen();$('trialDot').hidden=!!S.trial||!TRIALS.some(x=>trAvail(x)&&!trD(x.id));
+  $('dyTab').hidden=!dyOpen();if(dyOpen())$('dyDot').hidden=dyPend()<0&&!(dyShellCost()<=S.dy.c);refreshDy();
   $('seaTab').hidden=!seaOpen();if(seaOpen())$('seaDot').hidden=seaPend()<0;refreshSea();
   {const xo=expoOpen(),E=S.expo;$('expoTab').hidden=!xo;if(xo)$('expoDot').hidden=!(E.cand.length||fameGain()>=1&&!E.n||PAV.some(p=>pavCost(p)<=E.fame))}
   {const ro=repOpen();$('repTab').hidden=!ro;if(ro){const R=S.rep;$('repDot').hidden=!(TOOLS.some((t,i)=>toolOpen(i)&&TU.some(q=>toolCost(i,q[0])<=R.silver))||RELICS.some(p=>relOpen(p)&&relCost(p)<=R.silver))}}
@@ -2661,7 +2791,7 @@ function update(){
       toolRows.forEach((o,i)=>{const op=toolOpen(i),T=R.t[i];o.el.classList.toggle('locked',!op);o.lv.textContent=op?`속도 ${T.s} · 수리력 ${T.d} · 배율 ${T.m}${mast(i)?` · 연마 ${mast(i)}`:''}`:'';
         o.st.innerHTML=op?`${toolIv(i).toFixed(2)}초마다 수리력 <b>${fmtL(hitL(i))}</b> · 쓸 때마다 도구 배율 ×${fmt(10**mgL(i))}`:`기계 ${TOOLS[i].at}대를 수리하면 쓸 수 있습니다.`;
         o.bs.forEach(b=>{const pl=toolPlan(i,b.dataset.k),c=pl.c;b.querySelector('.l').textContent=TU.find(x=>x[0]===b.dataset.k)[1]+(pl.n>1?' ×'+pl.n:'');b.querySelector('.c').textContent='은화 '+fmt(c);b.disabled=!op||c>R.silver})})}
-    if(repView==='bench'){const sig=R.best;if(sig!==mtSig){mtSig=sig;$('mtList').innerHTML=MACH.map((m,k)=>`<div class="${mtCnt(k)?'on':''}"><b>${m} ${mtCnt(k)}대</b><span>${MT_RES[k]} ×${fmt(mtB(k))}</span></div>`).join('')}}
+    if(repView==='bench'){const sig=R.best;if(sig!==mtSig){mtSig=sig;$('mtList').innerHTML=MACH.map((m,k)=>`<div class="${mtCnt(k)?'on':''}"><b>${m} ${mtCnt(k)}대</b><span>${MT_RES[k]} ×${fmt(mtB(k))}</span></div>`).join('');const n=mtTot(),nx=MT2.find(m=>n<m.at);$('mt2Head').textContent=`수리한 기계 ${n}대`+(nx?` · 다음 이정표까지 ${nx.at-n}대`:' · 모두 달성');$('mt2List').innerHTML=MT2.map(m=>`<div class="${n>=m.at?'on':''}"><b>${m.at}대</b><span>${m.d}</span></div>`).join('')}}
     if(repView==='relic')refreshRelics();
     if(repView==='cx')refreshCx();
     if(repView==='ore'){const O=R.ore,op=oreOpen();$('oreLock').hidden=op;$('oreCard').hidden=!op;$('oreGrid').hidden=!op;$('oreUpList').hidden=!op;
@@ -2691,6 +2821,8 @@ $('prestigeBtn').onclick=()=>prestige();
 function armBtn(btnId,lblId,label,fn){let arm=0;$(btnId).onclick=()=>{const l=$(lblId);if(Date.now()-arm<3000){arm=0;l.textContent=label;fn();return}
   arm=Date.now();l.textContent='한 번 더 눌러 확인';setTimeout(()=>l.textContent=label,3000)}}
 armBtn('moveBtn','moveLbl','무브먼트 완성',()=>movement());
+armBtn('igBtn','igLbl','점화',()=>ignite());
+$('shellBtn').onclick=()=>{buyShell();dySig='';update()};
 armBtn('astroBtn','astroLbl','천문 시계 조립',()=>astro());
 armBtn('eterBtn','eterLbl','영겁 감기',()=>eternity());
 armBtn('towerBtn','towerLbl','시계탑 세우기',buildTower);
@@ -2703,11 +2835,23 @@ let resetArm=0;
 $('resetBtn').onclick=()=>{const b=$('resetBtn');if(Date.now()-resetArm<3000){S=fresh();recalcAM();renderAll();save();toast('공방을 초기화했습니다.');resetArm=0;b.querySelector('.l').textContent='전부 초기화';return}
   resetArm=Date.now();b.querySelector('.l').textContent='한 번 더 누르면 초기화';setTimeout(()=>b.querySelector('.l').textContent='전부 초기화',3000)};
 function renderAll(){rq=0;rqT=performance.now();achDirty=0;buildGears();buildUpg();buildPu();buildJw();buildCr();buildSe();buildTg();buildDist();buildRep();buildPav();buildOver();buildCx();buildHelp();candSig='';trSig='';buildCon();conSig='';bpSig='';buildChal();buildPlanets();buildAch();segs();lastMsKey='';
-  update();if((tab==='chal'&&$('chalTab').hidden)||(tab==='move'&&$('moveTab').hidden)||(tab==='astro'&&$('astroTab').hidden)||(tab==='eter'&&$('eterTab').hidden)||(tab==='tower'&&$('towerTab').hidden)||(tab==='con'&&$('conTab').hidden)||(tab==='city'&&$('cityTab').hidden)||(tab==='rep'&&$('repTab').hidden)||(tab==='expo'&&$('expoTab').hidden)||(tab==='sea'&&$('seaTab').hidden))tab='gears';setTab(tab)}
+  update();if((tab==='chal'&&$('chalTab').hidden)||(tab==='move'&&$('moveTab').hidden)||(tab==='astro'&&$('astroTab').hidden)||(tab==='eter'&&$('eterTab').hidden)||(tab==='tower'&&$('towerTab').hidden)||(tab==='con'&&$('conTab').hidden)||(tab==='city'&&$('cityTab').hidden)||(tab==='rep'&&$('repTab').hidden)||(tab==='expo'&&$('expoTab').hidden)||(tab==='sea'&&$('seaTab').hidden)||(tab==='dy'&&$('dyTab').hidden))tab='gears';setTab(tab)}
 
 
 /* ===================== 기록 탭 ===================== */
 const LOG=[
+ {v:'v30 · 새 레이어 「다이슨 스웜」',t:'11월 17일',items:[
+  '은하단 첫 별(처녀자리 은하단)을 이으면 「하늘」 묶음에 <b>스웜</b> 탭이 열립니다.',
+  '<b>점화</b>: 박람회 회차(시계탑과 그 아래)를 초기화하고 <b>연산</b>을 얻습니다. 명성·전시관·박람회 횟수·항로·성좌도는 그대로입니다. 얻는 양은 (log₁₀ 이번 회차 누적 종 − 120)² × (1 + log₁₀ 이번 회차 연산량). 점화는 패널이 폐열 한도에 닿았을 때 할 수 있습니다.',
+  '점화할 때 이번 회차의 <b>박람회도 함께 열려</b> 명성과 항로 거리를 같이 받습니다. 박람회와 점화 중 하나를 고를 필요가 없습니다.',
+  '첫 껍질은 열릴 때 함께 둘러지고, 연산으로 다음 <b>껍질</b>을 두르면 패널이 30분마다 두 배로 늘다가 <b>폐열 한도</b>에서 멈춥니다. 다음 껍질이 한도를 8배로 올립니다. 껍질은 8겹(수성 궤도 고리 → 마트료시카 브레인), 겹마다 장점 셋 중 하나를 고르고, 점화 10·25회에 하나씩 더 고릅니다.',
+  '껍질을 두를수록 종 획득량이 크게 늘어 은하단 뒷부분에 닿습니다. 점화 이정표 7개(빠른 복귀, 자동 껍질, 자동 장점, 자동 점화 등)와 업적 5개.',
+ ]},
+ {v:'v29.4 · 기계 도감 2권',t:'11월 16일 밤',items:[
+  '수리 공방 도감 아래에 <b>기계 도감 2권</b>이 생겼습니다. 지금까지 고친 기계의 <b>총 대수</b>에 따라 이정표 8개가 쌓이고, 다음 이정표까지 남은 대수가 보입니다.',
+  '50대 수리력 ×2 · 100대 은화 ×10 · 200대 광휘 ×10 · 350대 골동 부품 강화 비용 ×0.5 · 500대 기구 품질 +5 · 650대 자동 봉헌 조건 완화와 종 ×10 · 780대 수리력 ×10 · 865대 은화·광휘 ×100.',
+  '업적 2개 추가.',
+ ]},
  {v:'v29.3 · 성좌도 「태초의 빛」·「물질의 승리」',t:'11월 16일 밤',items:[
   '성좌도에 두 장이 늘어 8장이 됩니다. 순서는 성운 다음 <b>태초의 빛 → 물질의 승리</b>, 은하단은 맨 끝으로 옮겼습니다.',
   '<b>태초의 빛</b>(첫 박람회 + 은하수의 별 3개): 우주배경복사부터 플랑크 시대까지 시간을 거슬러 오르는 별 6개. 명성 ×2, 항로 거리 ×1.2, 모든 테마 +1단계, 전시관 비용 ×0.5, 은화·광휘 ×1e3, 모든 생산량 ×1e10000.',
@@ -3240,6 +3384,20 @@ function drawOrr(){if(!OW)return;const c=octx,cx=OW/2,cy=OH/2,t=performance.now(
 }
 
 
+/* 다이슨 스웜 */
+const dcv=$('dcv'),dctx=dcv.getContext('2d');let DW=0,DH=0;
+function sizeDcv(){const w=dcv.parentElement.clientWidth;if(!w)return;DW=w;DH=Math.round(Math.min(300,w*.62));const dpr=Math.min(devicePixelRatio||1,2);
+  dcv.width=DW*dpr;dcv.height=DH*dpr;dcv.style.height=DH+'px';dctx.setTransform(dpr,0,0,dpr,0,0)}
+function drawDy(){if(!DW)return;const c=dctx,t=performance.now()/1000,cx=DW/2,cy=DH/2,R=Math.min(DW,DH)*.46,k=dyK(),D=S.dy;
+  c.fillStyle='#07070d';c.fillRect(0,0,DW,DH);
+  const g=c.createRadialGradient(cx,cy,0,cx,cy,R*.16);g.addColorStop(0,'#fff6d0');g.addColorStop(.5,'#ffcf5a');g.addColorStop(1,'rgba(255,150,40,0)');c.fillStyle=g;c.beginPath();c.arc(cx,cy,R*.16,0,7);c.fill();
+  const fill=k?Math.min(1,D.PL/dyCapL(k)):0;
+  for(let i=0;i<8;i++){const r=R*(.2+.1*i),built=i<k,hot=i===k-1;
+    let col='#2a3140';if(built){const h=hot?fill:0;col=`hsl(${Math.round(210-200*h)},70%,${hot?55:45}%)`}
+    c.strokeStyle=col;c.globalAlpha=built?.95:.35;c.lineWidth=built?2.2:1;c.setLineDash(built?[]:[2,5]);c.beginPath();c.arc(cx,cy,r,0,7);c.stroke();c.setLineDash([]);
+    if(built){const n=Math.min(48,6+Math.floor((hot?fill:1)*42));c.fillStyle=col;for(let j=0;j<n;j++){const a=j/n*6.283+(reduce?0:t*(.25/(i+1)))*(i%2?1:-1);c.fillRect(cx+r*Math.cos(a)-1.2,cy+r*Math.sin(a)-1.2,2.4,2.4)}}}
+  c.globalAlpha=1;c.fillStyle=COL.muted;c.font=`11px ${C('--body')}`;c.textAlign='left';c.fillText(k?`껍질 ${k}겹 · ${DY_SH[k-1].n}`:'껍질 없음',8,DH-8)}
+
 /* ===================== 루프 ===================== */
 let lastT=performance.now(),uiT=0,achT=0,saveT=0,autoT=0,drawAcc=0,lastDraw=0,benchVis=true;
 /* 화면 밖에 있는 톱니 캔버스는 그리지 않음 */
@@ -3255,7 +3413,7 @@ function frame(now){let dt=(now-lastT)/1000;lastT=now;
   if(rq&&now-rqT>1500)renderAll();
   /* 고주사율(120Hz) 폰에서도 그림은 최대 초당 약 60번(저사양 모드는 30번) */
   drawAcc+=dt;if(now-lastDraw>=(S.opt.lowfx?28:12)){lastDraw=now;const ddt=Math.min(drawAcc,.1);drawAcc=0;
-    if(benchVis)draw(ddt);if(tab==='astro')drawOrr();if(tab==='tower')drawTower();if(tab==='city')drawCity();if(tab==='expo')drawExpo();if(tab==='opt'&&(S.stat.play|0)%2===0)drawHist();if(tab==='rep'&&repView==='bench')drawRep()}
+    if(benchVis)draw(ddt);if(tab==='astro')drawOrr();if(tab==='tower')drawTower();if(tab==='city')drawCity();if(tab==='expo')drawExpo();if(tab==='dy')drawDy();if(tab==='opt'&&(S.stat.play|0)%2===0)drawHist();if(tab==='rep'&&repView==='bench')drawRep()}
   requestAnimationFrame(frame)}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
 addEventListener('pagehide',save);
