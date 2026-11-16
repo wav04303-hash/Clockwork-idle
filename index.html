@@ -1509,10 +1509,10 @@ function dyTick(dt){const D=S.dy;if(!D.sh&&nd('q0')){D.sh=1;dyCache=null}const k
   D.DL=la(D.DL,dyRateL()+Math.log10(dt))}
 const dyBellL=()=>DY_BL[dyK()]+dyE('bell',0)+Math.log10(1+S.dy.cT)/2;
 /* ---------- 장인 시험 ---------- */
-const trGoalV=t=>t===0?Math.max(600,Math.floor(.9*Math.max(0,S.stat.bestRunL))):t===1?Math.max(40,Math.ceil(S.stat.bestCrL||0)+3):t===2?Math.max(20,Math.ceil(Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal)))):Math.max(23,Math.ceil(Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal)))+3);
+const trGoalV=(t,id)=>t===0?Math.max(600,Math.floor(.9*Math.max(0,S.stat.bestRunL))):t===1?Math.max(40,Math.ceil(S.stat.bestCrL||0)+3):t===2?Math.max(20,Math.min(299,Math.ceil(Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal))))):Math.max(23,Math.min(295,Math.ceil((id==='g1'?.5:.9)*Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal)))));
 const trGoalTxt=(t,v)=>t===0?`이번 회차 황동 1e${fmt(v)}`:t===1?`누적 시간 결정 1e${fmt(v)}`:`누적 종 1e${fmt(v)}`;
 const tr2=(a,b)=>S.trial===a||S.trial===b;
-const TRT=[{n:'견습',goal:'이번 회차 황동 (최고 회차 기록 자릿수의 90%)',done:v=>S.run>=v},{n:'숙련',goal:'누적 시간 결정 (내 최고 기록의 1000배)',done:v=>tL('cr')>=v},{n:'명장',goal:'누적 종 (내 최고 기록 갱신)',done:v=>S.tower.bellsTotal>=10**v},{n:'거장',goal:'누적 종 (내 최고 기록의 1000배)',done:v=>S.tower.bellsTotal>=10**v}];
+const TRT=[{n:'견습',goal:'이번 회차 황동 (최고 회차 기록 자릿수의 90%)',done:v=>S.run>=v},{n:'숙련',goal:'누적 시간 결정 (내 최고 기록의 1000배)',done:v=>tL('cr')>=v},{n:'명장',goal:'누적 종 (내 최고 기록 갱신)',done:v=>S.tower.bellsTotal>=10**v},{n:'거장',goal:'누적 종 (내 최고 기록 자릿수의 90%, 녹슨 하늘은 50%)',done:v=>S.tower.bellsTotal>=10**v}];
 const TRIALS=[
  {id:'e1',t:0,n:'녹슨 기어비', d:'기어비를 살 수 없음',              rw:'모든 회전 속도 ×1e6'},
  {id:'e2',t:0,n:'맨손 조립',   d:'개량을 살 수 없음',                rw:'모든 생산량 ×1e30'},
@@ -1544,12 +1544,12 @@ const trial=id=>S.trial===id, trD=id=>!!(S.trDone&&S.trDone[id]);
 const trTier=t=>TRIALS.filter(x=>x.t===t).every(x=>trD(x.id));
 const trOpen=()=>S.expo.n>=1;
 const trAvail=x=>trOpen()&&(x.t===0||trTier(x.t-1));
-function startTrial(id){const x=TRIALS.find(q=>q.id===id);if(!x||S.trial||!trAvail(x))return;S.trT=0;S.stat.bestCrL=Math.max(S.stat.bestCrL||0,tL('cr'));S.trGoal=trGoalV(x.t);const T=S.tower;
+function startTrial(id){const x=TRIALS.find(q=>q.id===id);if(!x||S.trial||!trAvail(x))return;S.trT=0;S.stat.bestCrL=Math.max(S.stat.bestCrL||0,tL('cr'));S.trGoal=trGoalV(x.t,x.id);const T=S.tower;
   T.best=Math.max(T.best||0,T.bellsTotal);T.bells=0;T.bellsTotal=0;T.towers=0;S.city.pop=Math.min(S.city.pop,1e4);S.chal=null;towerReset();S.trial=id;
   if(!SIMMODE)toast(`장인 시험 <b>${x.n}</b>을 시작합니다. 목표: ${trGoalTxt(x.t,S.trGoal)}`);after()}
 function quitTrial(){if(!S.trial)return;S.trial=null;if(!SIMMODE)toast('장인 시험을 그만두었습니다. 지금 상태 그대로 이어집니다.');after()}
 function checkTrial(){if(!S.trial)return;const x=TRIALS.find(q=>q.id===S.trial);if(!x){S.trial=null;return}
-  if(TRT[x.t].done(S.trGoal||trGoalV(x.t))){S.trDone[x.id]=1;S.trBest=S.trBest||{};S.trBest[x.id]=Math.min(S.trBest[x.id]||Infinity,S.trT||0);S.trial=null;if(!SIMMODE){toast(`장인 시험 <b>${x.n}</b> 통과! 보상: ${x.rw}${trTier(x.t)?` · ${TRT[x.t].n} 등급 완료: ${TRT_ALL[x.t]}`:''}`);after()}}}
+  if(TRT[x.t].done(S.trGoal||trGoalV(x.t,x.id))){S.trDone[x.id]=1;S.trBest=S.trBest||{};S.trBest[x.id]=Math.min(S.trBest[x.id]||Infinity,S.trT||0);S.trial=null;if(!SIMMODE){toast(`장인 시험 <b>${x.n}</b> 통과! 보상: ${x.rw}${trTier(x.t)?` · ${TRT[x.t].n} 등급 완료: ${TRT_ALL[x.t]}`:''}`);after()}}}
 /* ---------- 복잡 기구 (파밍) ---------- */
 const CXT=[{n:'문페이즈',m:'st'},{n:'크로노그래프',m:'spd'},{n:'투르비용',m:'prod'},{n:'미닛 리피터',m:'bell'},{n:'퍼페추얼 캘린더',m:'cr'},{n:'월드타임',m:'pop'}];
 const CXS={prod:{n:'모든 생산량',f:x=>'×'+fmtL(30*x)},spr:{n:'태엽 획득량',f:x=>'×'+fmt(10**(3*x))},jw:{n:'보석 획득량',f:x=>'×'+fmt(10**(2*x))},st:{n:'별 획득량',f:x=>'×'+fmt(10**x)},
@@ -2840,6 +2840,10 @@ function renderAll(){rq=0;rqT=performance.now();achDirty=0;buildGears();buildUpg
 
 /* ===================== 기록 탭 ===================== */
 const LOG=[
+ {v:'v30.1 · 거장 시험 목표 조정',t:'11월 17일 아침',items:[
+  '후반 콘텐츠(성좌도 7·8장, 스웜)로 종 최고 기록이 크게 오르면서 <b>거장 시험 목표(최고 기록의 1000배)에 닿을 수 없던 문제</b>를 고쳤습니다.',
+  '거장 시험 목표는 이제 <b>최고 기록 자릿수의 90%</b>입니다. 성좌도가 꺼지는 「녹슨 하늘」만 50%입니다. 명장·거장 목표는 숫자 상한(1e300) 아래로 묶었습니다.',
+ ]},
  {v:'v30 · 새 레이어 「다이슨 스웜」',t:'11월 17일',items:[
   '은하단 첫 별(처녀자리 은하단)을 이으면 「하늘」 묶음에 <b>스웜</b> 탭이 열립니다.',
   '<b>점화</b>: 박람회 회차(시계탑과 그 아래)를 초기화하고 <b>연산</b>을 얻습니다. 명성·전시관·박람회 횟수·항로·성좌도는 그대로입니다. 얻는 양은 (log₁₀ 이번 회차 누적 종 − 120)² × (1 + log₁₀ 이번 회차 연산량). 점화는 패널이 폐열 한도에 닿았을 때 할 수 있습니다.',
