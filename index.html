@@ -1330,7 +1330,7 @@ const CON=[
 ];
 CON.forEach(n=>n.pg=n.pg||'n');
 const CPAGES=[{id:'n',n:'북쪽 하늘',ok:()=>true},{id:'z',n:'황도',ok:()=>conCnt('n')>=15,lock:'북쪽 하늘의 별 15개'},{id:'s',n:'남쪽 하늘',ok:()=>conCnt('z')>=10,lock:'황도의 별 10개'},{id:'m',n:'은하수',ok:()=>conCnt('s')>=2,lock:'남쪽 하늘의 별 2개'},{id:'v',n:'성운',ok:()=>conCnt('m')>=3,lock:'은하수의 별 3개'},{id:'o',n:'태초의 빛',ok:()=>S.expo.n>=1&&conCnt('m')>=3,lock:'첫 박람회와 은하수의 별 3개'},{id:'x',n:'물질의 승리',ok:()=>conCnt('o')>=6&&S.sea.next>=9,lock:'태초의 빛 별 6개와 항로 정박 9번'},{id:'q',n:'은하단',ok:()=>conCnt('v')>=4,lock:'성운의 별 4개'}];
-const nd=id=>S.chal!=='k5'&&S.trial!=='m6'&&S.trial!=='g1'&&!!S.tower.nodes[id],nl=id=>+S.tower.nodes[id]||0,conCnt=pg=>CON.filter(n=>n.pg===pg&&nd(n.id)).length;
+const CON_QOL={b2:1,d2:1,d3:1,z0:1,z1:1,z3:1,z6:1,z9:1,z11:1,s5:1},nd=id=>(CON_QOL[id]||S.chal!=='k5'&&S.trial!=='m6'&&S.trial!=='g1')&&!!S.tower.nodes[id],nl=id=>+S.tower.nodes[id]||0,conCnt=pg=>CON.filter(n=>n.pg===pg&&nd(n.id)).length;
 const passRate=()=>(nd('s5')?.25:nd('z11')?.1:nd('z3')?.03:.01)+.05*tp('dil')+(tmod(1,0)===2?.02:0)+(msF(80)?.02:0);
 /* ===================== 만국 박람회 · 장인 계보 ===================== */
 const PAV=[
@@ -2840,6 +2840,9 @@ function renderAll(){rq=0;rqT=performance.now();achDirty=0;buildGears();buildUpg
 
 /* ===================== 기록 탭 ===================== */
 const LOG=[
+ {v:'v30.2 · 성좌도가 꺼져도 편의 효과는 유지',t:'11월 17일 아침',items:[
+  '성좌도 효과가 꺼지는 의뢰·시험(빈 하늘, 별 없는 밤, 녹슨 하늘)에서도 <b>편의 효과는 그대로</b> 켜져 있습니다: 자동으로 얻는 태엽·보석·별·시간 결정과 그 비율, 자리 비움 한도 48시간, 이정표 항상 전부 적용.',
+ ]},
  {v:'v30.1 · 거장 시험 목표 조정',t:'11월 17일 아침',items:[
   '후반 콘텐츠(성좌도 7·8장, 스웜)로 종 최고 기록이 크게 오르면서 <b>거장 시험 목표(최고 기록의 1000배)에 닿을 수 없던 문제</b>를 고쳤습니다.',
   '거장 시험 목표는 이제 <b>최고 기록 자릿수의 90%</b>입니다. 성좌도가 꺼지는 「녹슨 하늘」만 50%입니다. 명장·거장 목표는 숫자 상한(1e300) 아래로 묶었습니다.',
