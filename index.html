@@ -834,7 +834,8 @@ textarea{width:100%;min-height:80px;background:var(--bg);color:var(--fg);border:
       </section>
 
       <section id="p-dy" hidden>
-        <div class="list">
+        <div class="card" id="dyLock" hidden><h3>다이슨 스웜 · 잠김</h3><p>장인 시험 <b>거장 등급 6종</b>을 모두 통과하면 졸업 선물로 열립니다. 태양을 태엽 패널로 감싸 폐열 한도를 껍질로 넘어서는 새 레이어예요.</p><p class="summary" id="dyLockN"></p></div>
+        <div class="list" id="dyMain">
           <div class="card">
             <h3>다이슨 스웜</h3>
             <p>태양을 태엽 패널로 감쌉니다. 패널은 스스로 복제하며 늘어나지만, 쌓인 폐열이 껍질의 방열 한도에 닿으면 멈춥니다. 바깥에 껍질을 하나 더 두르면 한도가 8배로 늘고 효율도 올라 다시 늘어납니다. <b>점화</b>하면 박람회 회차(시계탑과 그 아래)가 초기화되고, 이번 회차 종과 패널이 계산한 양에 따라 연산을 얻습니다. 점화는 패널이 폐열 한도에 닿았을 때 할 수 있습니다. 명성·전시관·박람회 횟수·항로·성좌도는 그대로입니다.</p>
@@ -1475,7 +1476,7 @@ const DY_MS=[
  {at:40,d:'복제 주기 ×0.5'},
 ];
 const msDy=at=>(S.dy.n||0)>=at;
-const dyOpen=()=>nd('q0')||(S.dy.n||0)>0||(S.dy.sh||0)>0;
+const dyOpen=()=>trTier(3)||(S.dy.n||0)>0||(S.dy.sh||0)>0;
 let dyCache=null;
 function dyEff(){if(!dyCache){const c={};for(const k in S.dy.pk)for(const j of S.dy.pk[k]){const o=DY_SH[k]&&DY_SH[k].o[j];if(!o)continue;const [t,v]=o;
     if(t==='td'||t==='pav'||t==='con'||t==='qc')c[t]=(c[t]||1)*v;else if(t==='fame'||t==='dist'||t==='ig'||t==='rate'||t==='heat'||t==='sea')c[t]=(c[t]||1)*v;else c[t]=(c[t]||0)+v}dyCache=c}return dyCache}
@@ -1504,12 +1505,12 @@ function ignite(){const g=igGain();if(g<1)return;const D=S.dy,T=S.tower,E=S.expo
   T.best=Math.max(T.best||0,T.bellsTotal);T.bells=0;T.bellsTotal=Math.max(msX(8)?1e9:msX(2)?1e6:0,msDy(1)?1e15:0,10**dyE('ret',0));T.towers=0;
   S.city.pop=Math.min(S.city.pop,1e4);towerReset();if(fg>=1){makeCands();E.th=null;makeThemes()}
   if(!SIMMODE)toast(`태양 둘레에 점화했습니다. 연산 <b>${fmt(g)}</b>을 얻었습니다.${fg>=1?` 박람회도 함께 열려 명성 <b>${fmt(fg)}</b>${sd?`, 항로 <b>+${fmt(sd)}</b>`:''}을 얻었습니다.`:''}`);after()}
-function dyTick(dt){const D=S.dy;if(!D.sh&&nd('q0')){D.sh=1;dyCache=null}const k=dyK();if(!k)return;
+function dyTick(dt){const D=S.dy;if(!D.sh&&trTier(3)){D.sh=1;dyCache=null}const k=dyK();if(!k)return;
   const cap=dyCapL(k);D.PL=Math.min(cap,D.PL+dt/dyTd()*Math.LOG10E*Math.LN2);D.H=D.PL+Math.log10(DY_T[k-1]/5800);
   D.DL=la(D.DL,dyRateL()+Math.log10(dt))}
-const dyBellL=()=>DY_BL[dyK()]+dyE('bell',0)+Math.log10(1+S.dy.cT)/2;
+const dyBellL=()=>S.trial?0:DY_BL[dyK()]+dyE('bell',0)+Math.log10(1+S.dy.cT)/2;
 /* ---------- 장인 시험 ---------- */
-const trGoalV=(t,id)=>t===0?Math.max(600,Math.floor(.9*Math.max(0,S.stat.bestRunL))):t===1?Math.max(40,Math.ceil(S.stat.bestCrL||0)+3):t===2?Math.max(20,Math.min(299,Math.ceil(Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal))))):Math.max(23,Math.min(295,Math.ceil((id==='g1'?.5:.9)*Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal)))));
+const trGoalV=(t,id)=>t===0?Math.max(600,Math.floor(.9*Math.max(0,S.stat.bestRunL))):t===1?Math.max(40,Math.ceil(S.stat.bestCrL||0)+3):t===2?Math.max(20,Math.min(299,Math.ceil(bellBaseL()))):Math.max(23,Math.min(295,Math.ceil((id==='g1'?.5:.9)*bellBaseL())));
 const trGoalTxt=(t,v)=>t===0?`이번 회차 황동 1e${fmt(v)}`:t===1?`누적 시간 결정 1e${fmt(v)}`:`누적 종 1e${fmt(v)}`;
 const tr2=(a,b)=>S.trial===a||S.trial===b;
 const TRT=[{n:'견습',goal:'이번 회차 황동 (최고 회차 기록 자릿수의 90%)',done:v=>S.run>=v},{n:'숙련',goal:'누적 시간 결정 (내 최고 기록의 1000배)',done:v=>tL('cr')>=v},{n:'명장',goal:'누적 종 (내 최고 기록 갱신)',done:v=>S.tower.bellsTotal>=10**v},{n:'거장',goal:'누적 종 (내 최고 기록 자릿수의 90%, 녹슨 하늘은 50%)',done:v=>S.tower.bellsTotal>=10**v}];
@@ -1539,7 +1540,10 @@ const TRIALS=[
  {id:'g5',t:3,n:'닫힌 공방',   d:'수리 공방·전시관 없음 + 황동 생산(로그) ×0.9', rw:'은화 ×1e4, 명성 획득량 ×2'},
  {id:'g6',t:3,n:'잃어버린 시간', d:'보석 획득(로그) ×0.5 + 별 획득량 ×0.01', rw:'모든 생산량 ×1e10000'},
 ];
-const TRT_ALL=['명성 획득량 ×2','시간 결정 획득량 ×10','명성 획득량 ×3, 종 획득량 ×10','복잡 기구 장착 칸 +1, 모든 응축 효과 지수 +0.05'];
+const TRT_ALL=['명성 획득량 ×2','시간 결정 획득량 ×10','명성 획득량 ×3, 종 획득량 ×10','복잡 기구 장착 칸 +1, 모든 응축 효과 지수 +0.05, <b>다이슨 스웜 열림</b>'];
+const trGN=()=>TRIALS.filter(x=>x.t===3&&trD(x.id)).length;
+/* 명장·거장 목표의 기준: 스웜이 열린 뒤에는 「스웜 전 종 최고 기록」(없으면 1e140) */
+const bellBaseL=()=>dyOpen()?(S.stat.bellPreL||140):Math.log10(Math.max(1,S.tower.best||0,S.tower.bellsTotal));
 const trial=id=>S.trial===id, trD=id=>!!(S.trDone&&S.trDone[id]);
 const trTier=t=>TRIALS.filter(x=>x.t===t).every(x=>trD(x.id));
 const trOpen=()=>S.expo.n>=1;
@@ -1549,7 +1553,7 @@ function startTrial(id){const x=TRIALS.find(q=>q.id===id);if(!x||S.trial||!trAva
   if(!SIMMODE)toast(`장인 시험 <b>${x.n}</b>을 시작합니다. 목표: ${trGoalTxt(x.t,S.trGoal)}`);after()}
 function quitTrial(){if(!S.trial)return;S.trial=null;if(!SIMMODE)toast('장인 시험을 그만두었습니다. 지금 상태 그대로 이어집니다.');after()}
 function checkTrial(){if(!S.trial)return;const x=TRIALS.find(q=>q.id===S.trial);if(!x){S.trial=null;return}
-  if(TRT[x.t].done(S.trGoal||trGoalV(x.t,x.id))){S.trDone[x.id]=1;S.trBest=S.trBest||{};S.trBest[x.id]=Math.min(S.trBest[x.id]||Infinity,S.trT||0);S.trial=null;if(!SIMMODE){toast(`장인 시험 <b>${x.n}</b> 통과! 보상: ${x.rw}${trTier(x.t)?` · ${TRT[x.t].n} 등급 완료: ${TRT_ALL[x.t]}`:''}`);after()}}}
+  if(TRT[x.t].done(S.trGoal||trGoalV(x.t,x.id))){S.trDone[x.id]=1;S.trBest=S.trBest||{};S.trBest[x.id]=Math.min(S.trBest[x.id]||Infinity,S.trT||0);S.trial=null;if(!SIMMODE){toast(`장인 시험 <b>${x.n}</b> 통과! 보상: ${x.rw}${trTier(x.t)?` · ${TRT[x.t].n} 등급 완료: ${TRT_ALL[x.t]}`:''}`);if(x.t===3&&trTier(3)&&!S.dy.sh)toast('거장 시험 6종을 모두 마쳤습니다. 졸업 선물로 <b>다이슨 스웜</b>이 열립니다. 「하늘」 묶음의 스웜 탭을 열어 보세요.');after()}}}
 /* ---------- 복잡 기구 (파밍) ---------- */
 const CXT=[{n:'문페이즈',m:'st'},{n:'크로노그래프',m:'spd'},{n:'투르비용',m:'prod'},{n:'미닛 리피터',m:'bell'},{n:'퍼페추얼 캘린더',m:'cr'},{n:'월드타임',m:'pop'}];
 const CXS={prod:{n:'모든 생산량',f:x=>'×'+fmtL(30*x)},spr:{n:'태엽 획득량',f:x=>'×'+fmt(10**(3*x))},jw:{n:'보석 획득량',f:x=>'×'+fmt(10**(2*x))},st:{n:'별 획득량',f:x=>'×'+fmt(10**x)},
@@ -2280,7 +2284,7 @@ const conExOk=n=>!n.ex||S.expo.n>=n.ex;
 const conAvail=n=>!conMaxed(n)&&(!n.p||nd(n.p))&&conExOk(n)&&CPAGES.find(q=>q.id===n.pg).ok();
 function buyCon(n){const c=conCost(n);if(!conAvail(n)||c>S.tower.bells)return;S.tower.bells-=c;S.tower.nodes[n.id]=nl(n.id)+1;if(!SIMMODE)toast(n.k?`<b>${n.n}</b> ${nl(n.id)}단계`:`<b>${n.n}</b>을(를) 성좌도에 이었습니다.`);checkAch();if(!SIMMODE){conSig='';update()}}
 function buildTower(){const gain=bellGain();if(gain<1)return;fastRec('t');S.cq.c.tower++;
-  const T=S.tower;T.bells=capN(T.bells+gain);T.bellsTotal=capN(T.bellsTotal+gain);T.best=Math.max(T.best||0,T.bellsTotal);T.towers++;
+  const T=S.tower;T.bells=capN(T.bells+gain);T.bellsTotal=capN(T.bellsTotal+gain);T.best=Math.max(T.best||0,T.bellsTotal);if(!dyOpen())S.stat.bellPreL=Math.max(S.stat.bellPreL||0,Math.log10(Math.max(1,T.best)));T.towers++;
   towerReset();if(!SIMMODE)toast(`시계탑이 올라갔습니다. 종 <b>${fmt(gain)}개</b>가 울립니다.`);after()}
 function towerReset(){const T=S.tower;T.fl=msF(60)?5:0;S.rep.multL=0;
   S.crystals=0;S.crystalsTotal=msT(300)?100:msT(3)?10:0;T.startCr=S.crystalsTotal;for(const k in S.cr)S.cr[k]=0;
@@ -2467,12 +2471,12 @@ function refreshOre(){const O=S.rep.ore;while(O.g.length<oreN())O.g.push(0);cons
   G2.innerHTML=O.g.slice(0,oreN()).map((v,k)=>v?`<div class="ocell${k===O.pop?' pop':''}" style="background:${oreColor(v)}">${v}</div>`:'<div class="ocell empty">빈 칸</div>').join('');O.pop=-1}
 function buildPav(){pavRows=shopRows('pavList',PAV,p=>{if(buyPav(p))checkAch()},'expo')}
 let dySig='';
-function refreshDy(){if(tab!=='dy')return;const D=S.dy,k=dyK();
+function refreshDy(){if(tab!=='dy'||!dyOpen())return;const D=S.dy,k=dyK();
   $('dyC').textContent=fmt(D.c);$('dyCT').textContent=fmt(D.cT);$('dyP').textContent=k?fmtL(D.PL):'껍질을 먼저 두르세요';$('dyR').textContent=k?fmtL(dyRateL())+'/초 · 누적 '+(D.DL>-1e299?fmtL(D.DL):'0'):'—';
   $('dyBell').textContent='×'+fmtL(dyBellL());$('dyN').textContent=fmt(D.n);
   const cap=dyCapL(k);setProg('pg-dyheat',k?Math.min(1,D.PL/cap):0,!k?'첫 껍질을 두르면 패널이 늘어나기 시작합니다':D.PL>=cap-1e-9?`폐열 한도에 닿았습니다 · 다음 껍질을 두르면 한도 ×8`:`폐열 한도까지 ${Math.floor(D.PL/cap*100)}% · 2배마다 ${fmtT(dyTd())}${D.PL<cap?` · 포화까지 약 ${fmtT((cap-D.PL)/Math.log10(2)*dyTd())}`:''}`);
   const c=dyShellCost();$('shellLbl').textContent=k<8?`${DY_SH[k].n} 두르기`:'껍질 8겹 완성';$('shellCost').textContent=k<8?'연산 '+fmt(c):'—';$('shellBtn').disabled=k>=8||c>D.c;
-  const g=igGain();$('igGainN').textContent=g>=1?'연산 +'+fmt(g):!dySat()?'폐열 한도에 닿으면 점화 가능':'이번 회차 종 1e121 필요';$('igBtn').disabled=g<1;
+  const g=igGain();$('igGainN').textContent=g>=1?'연산 +'+fmt(g):!dySat()?'폐열 한도에 닿으면 점화 가능':'이번 회차 종 1e121 필요 · 지금 '+fmt(S.tower.bellsTotal);$('igBtn').disabled=g<1;
   const pend=dyPend(),sig=JSON.stringify([D.pk,k,pend,D.n])+nota();if(sig===dySig)return;dySig=sig;
   $('dyPendCard').hidden=pend<0;const L=$('dyOpts');L.innerHTML='';
   if(pend>=0){const t=D.pk[pend]||[];[0,1,2].filter(j=>!t.includes(j)).forEach(j=>{const b=document.createElement('button');b.className='planet cand';const o=DY_SH[pend].o[j];
@@ -2540,7 +2544,7 @@ let trSig='';
 function refreshTrials(){const sig=JSON.stringify(S.trDone)+S.trial+S.expo.n+Math.floor(S.stat.bestRunL/1000);$('trQuit').hidden=!S.trial;
   $('trHead').textContent=S.trial?`진행 중: ${TRIALS.find(x=>x.id===S.trial).n} · 목표 ${trGoalTxt(TRIALS.find(x=>x.id===S.trial).t,S.trGoal)} · ${fmtT(Math.max(1,S.trT||0))} 경과`:`통과 ${Object.keys(S.trDone).length}/${TRIALS.length}`;
   if(sig===trSig)return;trSig=sig;
-  $('trList').innerHTML=TRT.map((T,t)=>t===3&&!trTier(2)?`<div class="card"><h3>거장 등급 <span class="summary">명장 등급을 모두 통과하면 열립니다 · 두 제약을 한꺼번에 안고 도전</span></h3></div>`:`<div class="card"><h3>${T.n} 등급 <span class="summary">목표: ${S.trial?T.goal:trGoalTxt(t,trGoalV(t))+' (지금 시작하면)'} · 모두 통과 보상: ${TRT_ALL[t]}${trTier(t)?' ✓':''}</span></h3><div class="planets">${TRIALS.filter(x=>x.t===t).map(x=>{const d=trD(x.id),on=S.trial===x.id,av=trAvail(x);
+  $('trList').innerHTML=TRT.map((T,t)=>t===3&&!trTier(2)?`<div class="card"><h3>거장 등급 <span class="summary">명장 등급을 모두 통과하면 열립니다 · 두 제약을 한꺼번에 안고 도전 · 6종 완료 보상: 다이슨 스웜</span></h3></div>`:`<div class="card"><h3>${T.n} 등급 <span class="summary">목표: ${S.trial?T.goal:trGoalTxt(t,trGoalV(t))+' (지금 시작하면)'} · 모두 통과 보상: ${TRT_ALL[t]}${trTier(t)?' ✓':t===3?` (${trGN()}/6)`:''}</span></h3><div class="planets">${TRIALS.filter(x=>x.t===t).map(x=>{const d=trD(x.id),on=S.trial===x.id,av=trAvail(x);
     return `<button class="planet tri${d?' own':''}${on?' on':''}" data-id="${x.id}" ${d||on||!av||S.trial?'disabled':''}><span class="t">${x.n}<span>${d?'통과'+(S.trBest&&S.trBest[x.id]?' · '+fmtT(Math.max(1,S.trBest[x.id])):''):on?'진행 중':av?'시작':'잠김'}</span></span><span class="d">제약: ${x.d}</span><span class="d">보상: ${x.rw}</span></button>`}).join('')}</div></div>`).join('');
   $('trList').querySelectorAll('.tri').forEach(b=>b.onclick=()=>{startTrial(b.dataset.id);trSig='';update()})}
 $('trQuit').onclick=()=>{quitTrial();trSig='';update()};
@@ -2705,7 +2709,7 @@ function update(){
   const ec=$('crysChip');ec.hidden=!S.crystalsTotal;ec.textContent=`결정 ${fmtL(tL('cr'))}`;
   const cg=crystalGain();$('eterTab').hidden=nPl()<9&&!S.eters;$('eterDot').hidden=cg<1;
   $('trialTab').hidden=!trOpen();$('trialDot').hidden=!!S.trial||!TRIALS.some(x=>trAvail(x)&&!trD(x.id));
-  $('dyTab').hidden=!dyOpen();if(dyOpen())$('dyDot').hidden=dyPend()<0&&!(dyShellCost()<=S.dy.c);refreshDy();
+  $('dyTab').hidden=!dyOpen()&&!trTier(2);$('dyLock').hidden=dyOpen();$('dyMain').hidden=!dyOpen();if(!dyOpen())$('dyLockN').textContent=`거장 시험 ${trGN()}/6 통과 · 남은 ${6-trGN()}종`;$('dyDot').hidden=!dyOpen()||dyPend()<0&&!(dyShellCost()<=S.dy.c);refreshDy();
   $('seaTab').hidden=!seaOpen();if(seaOpen())$('seaDot').hidden=seaPend()<0;refreshSea();
   {const xo=expoOpen(),E=S.expo;$('expoTab').hidden=!xo;if(xo)$('expoDot').hidden=!(E.cand.length||fameGain()>=1&&!E.n||PAV.some(p=>pavCost(p)<=E.fame))}
   {const ro=repOpen();$('repTab').hidden=!ro;if(ro){const R=S.rep;$('repDot').hidden=!(TOOLS.some((t,i)=>toolOpen(i)&&TU.some(q=>toolCost(i,q[0])<=R.silver))||RELICS.some(p=>relOpen(p)&&relCost(p)<=R.silver))}}
@@ -2840,6 +2844,12 @@ function renderAll(){rq=0;rqT=performance.now();achDirty=0;buildGears();buildUpg
 
 /* ===================== 기록 탭 ===================== */
 const LOG=[
+ {v:'v30.4 · 다이슨 스웜 = 거장 시험 졸업 선물',t:'11월 21일 밤',items:[
+  '<b>다이슨 스웜은 이제 장인 시험 거장 등급 6종을 모두 통과하면 열립니다.</b> 거장 단계의 졸업 선물이에요. 은하단 첫 별은 더 이상 스웜을 열지 않습니다.',
+  '거장 등급 칸에 「6종 완료 보상: 다이슨 스웜 (n/6)」을, 스웜 탭에는 잠긴 동안 남은 시험 수를 보여 줍니다. 6종을 다 마치면 알림이 뜹니다.',
+  '이미 스웜이 열린 저장은 그대로입니다. 그런 저장에서 남은 장인 시험을 치를 때는 시험 중에 <b>스웜의 종 배율이 꺼지고</b>, 명장·거장 목표는 스웜 전 종 최고 기록(없으면 1e140)을 기준으로 잡습니다.',
+  '점화 버튼에 종이 모자랄 때 <b>지금 회차 종이 얼마인지</b> 함께 보여 줍니다 (「종 1e121 필요 · 지금 …」).',
+ ]},
  {v:'v30.3 · 스웜 초반 가속',t:'11월 17일 아침',items:[
   '스웜 초반이 너무 느려서, <b>점화 10회까지는 패널 복제 주기가 짧아집니다</b>. 첫 점화 전 3분 → 점화할 때마다 늘어나 10회째부터 원래대로 30분입니다.',
   '폐열 막대에 <b>포화까지 남은 시간</b>을 함께 보여 줍니다.',
